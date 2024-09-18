@@ -1,5 +1,5 @@
 NAME      := a.out
-UTILS     := ../../utils/
+UTILS     := ../utils/
 
 INCLCUDES := -I${UTILS} -I${UTILS}/ap -I${UTILS}/co -I${UTILS}/generic -I.
 LIBS      := -lpthread -ldl -lglfw -lcurl
