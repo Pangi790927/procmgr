@@ -1,4 +1,5 @@
 #include "tasks.h"
+#include "path_utils.h"
 
 #include <signal.h>
 #include <unistd.h>
@@ -25,6 +26,23 @@ static std::set<ptask_t> tokill_tasks;
 static std::unordered_map<std::string, ptask_t> tasks;
 static std::unordered_map<pid_t, ptask_t> pid2task;
 
+static void list_fds() {
+    pid_t pid = getpid();
+    auto list = list_dir(sformat("/proc/%d/fd", pid));
+    std::string liststr;
+    for (auto f : list) {
+        if (f == "." || f == "..")
+            continue;
+        int fd = std::stoi(f);
+        int flags = fcntl(fd, F_GETFD);
+        if (flags < 0)
+            continue;
+
+        liststr += sformat("%s[%d], ", f.c_str(), flags);
+    }
+    DBG("fds[%d]: %s", pid, liststr.c_str());
+}
+
 static pid_t exec_task(const std::string& exec_str) {
     auto args = ssplit(exec_str, " ");
     if (args.size() == 0 || args[0] == "") {
@@ -36,8 +54,14 @@ static pid_t exec_task(const std::string& exec_str) {
         argv.push_back(a.c_str());
     argv.push_back(NULL);
 
+    DBG("Pre-fork");
+    list_fds();
     pid_t child_pid = fork();
+
     if (child_pid == 0) {
+        DBG("Post-fork");
+        list_fds();
+
         if (execvp(argv[0], (char * const *)argv.data()) < 0) {
             DBG("Failed to run the process:");
             for (auto arg : argv) {

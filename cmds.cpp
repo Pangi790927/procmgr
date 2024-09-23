@@ -12,6 +12,7 @@ static int open_socket() {
     strcpy(sockaddr_un.sun_path, cfg_get()->sock_path.c_str());
 
     ASSERT_FN(fd = socket(AF_UNIX, SOCK_STREAM, 0));
+    ASSERT_FN(fcntl(fd, F_SETFD, FD_CLOEXEC));
     remove(sockaddr_un.sun_path);
 
     ASSERT_FN(bind(fd, (struct sockaddr *) &sockaddr_un, sizeof(struct sockaddr_un)));

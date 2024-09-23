@@ -10,6 +10,7 @@
 #include "cmds.h"
 #include "tasks.h"
 #include "cfg.h"
+#include "path_utils.h"
 
 /* TODO:
     - add channels
@@ -69,6 +70,7 @@ int main(int argc, char const *argv[])
 
         for (auto &t : cfg_get()->tasks)
             ASSERT_FN(tasks_add(&t));
+
 
         pool.sched(co_main(arg));
         ASSERT_FN(pool.run());
