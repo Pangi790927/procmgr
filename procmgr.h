@@ -9,6 +9,8 @@
 
 #define PMGR_MAX_TASK_NAME 128
 #define PMGR_MAX_TASK_PATH 512
+#define PMGR_MAX_TASK_USR  64
+#define PMGR_MAX_TASK_GRP  64
 
 enum pmgr_msg_type_e : int32_t {
     /* --- Requests: --- */
@@ -59,8 +61,10 @@ enum pmgr_task_state_e : int32_t {
 
 enum pmgr_task_flags_e : int32_t {
     PMGR_TASK_FLAG_PERSIST = 1,
+    PMGR_TASK_FLAG_NOSTDIO = 2,
+    PMGR_TASK_FLAG_PWDSELF = 4,
 
-    PMGR_TASK_FLAG_MASK = 0b1,  /* This needs to be kept actualized */
+    PMGR_TASK_FLAG_MASK = 0b111,  /* This needs to be kept actualized */
 };
 
 struct PACKED_STRUCT pmgr_hdr_t {
@@ -73,6 +77,7 @@ struct PACKED_STRUCT pmgr_task_name_t {
     char task_name[PMGR_MAX_TASK_NAME]; /* identificator of a task */
 };
 
+/* TODO: fix too much useless copy and random dimensions */
 struct PACKED_STRUCT pmgr_task_t {
     pmgr_hdr_t hdr;
 
@@ -88,6 +93,13 @@ struct PACKED_STRUCT pmgr_task_t {
 
     /* unique task name, the user MUST provide one */
     char task_name[PMGR_MAX_TASK_NAME];
+
+    /* task power working directory */
+    char task_pwd[PMGR_MAX_TASK_PATH];
+
+    /* user and group */
+    char task_usr[PMGR_MAX_TASK_USR];
+    char task_grp[PMGR_MAX_TASK_GRP];
 
     /* the whole task, path and args included, this is placed last in this struct because we may
     want to make it expandable in the future */

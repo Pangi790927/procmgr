@@ -137,6 +137,7 @@ int main(int argc, char const *argv[])
                 },
             };
             strcpy(msg.task_name, task.c_str());
+            strcpy(msg.task_pwd, "");
             strcpy(msg.task_path, path.c_str());
 
             int flags = 0;

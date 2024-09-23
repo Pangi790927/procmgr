@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
+#include <grp.h>
+#include <pwd.h>
 
 #define START_DEAD_TIMER 30
 
@@ -26,48 +28,103 @@ static std::set<ptask_t> tokill_tasks;
 static std::unordered_map<std::string, ptask_t> tasks;
 static std::unordered_map<pid_t, ptask_t> pid2task;
 
-static void list_fds() {
-    pid_t pid = getpid();
-    auto list = list_dir(sformat("/proc/%d/fd", pid));
-    std::string liststr;
-    for (auto f : list) {
-        if (f == "." || f == "..")
-            continue;
-        int fd = std::stoi(f);
-        int flags = fcntl(fd, F_GETFD);
-        if (flags < 0)
-            continue;
+extern char **environ;
 
-        liststr += sformat("%s[%d], ", f.c_str(), flags);
-    }
-    DBG("fds[%d]: %s", pid, liststr.c_str());
+static bool is_prefix(const std::string& prefix, const std::string& dst) {
+    return dst.compare(0, prefix.size(), prefix) == 0;
 }
 
-static pid_t exec_task(const std::string& exec_str) {
-    auto args = ssplit(exec_str, " ");
+static pid_t exec_task(ptask_t task) {
+    bool cutstdio = task->o.flags & PMGR_TASK_FLAG_NOSTDIO;
+    bool pwdself = task->o.flags & PMGR_TASK_FLAG_PWDSELF;
+
+    std::string usr = task->o.task_usr;
+    std::string grp = task->o.task_grp;
+
+    int uid = getuid();
+    int gid = getgid();
+
+    if (usr != "") {
+        struct passwd *up = getpwnam(usr.c_str());
+        ASSERT_FN(CHK_PTR(up));
+        uid = up->pw_uid;
+    }
+    if (grp != "") {
+        struct group *gp = getgrnam(grp.c_str());
+        ASSERT_FN(CHK_PTR(gp));
+        gid = gp->gr_gid;
+    }
+
+    std::vector<std::string> args;
+    ASSERT_FN(ssplit_args(task->o.task_path, args));
     if (args.size() == 0 || args[0] == "") {
         DBG("Invalid exec_str");
         return -1;
     }
     std::vector<const char *> argv;
-    for (auto& a : args)
+    for (auto& a : args) {
         argv.push_back(a.c_str());
+    }
     argv.push_back(NULL);
 
-    DBG("Pre-fork");
-    list_fds();
+    std::string pwd = task->o.task_pwd;
+    if (pwdself) {
+        auto abs_path = path_get_abs(path_get_relative(argv[0]));
+        std::size_t found = abs_path.find_last_of("/\\");
+        pwd = abs_path.substr(0, found + 1);
+    }
+
+    std::vector<const char *> envp;
+    bool has_pwd = pwd != "";
+    std::string new_pwd = path_get_relative(pwd);
+    std::string new_pwd_env = sformat("PWD=%s", new_pwd.c_str());
+    for (char **env = environ; *env; env++) {
+        if (has_pwd && is_prefix("PWD=", *env)) {
+            envp.push_back(new_pwd_env.c_str());
+        }
+        else {
+            envp.push_back(*env);
+        }
+    }
+    envp.push_back(NULL);
+
     pid_t child_pid = fork();
 
     if (child_pid == 0) {
-        DBG("Post-fork");
-        list_fds();
+        if (has_pwd) {
+            if (chdir(new_pwd.c_str()) < 0) {
+                DBGE("Failed to change dir");
+                kill(getpid(), SIGTERM);
+                exit(-1);
+            }
+        }
+        if (cutstdio) {
+            close(0);
+            close(1);
+            close(2);
+        }
+        if (usr != "") {
+            if (setgid(gid) < 0) {
+                DBGE("Failed to change user");
+                kill(getpid(), SIGTERM);
+                exit(-1);
+            }
+        }
+        if (grp != "") {
+            if (setuid(uid) < 0) {
+                DBGE("Failed to change group");
+                kill(getpid(), SIGTERM);
+                exit(-1);
+            }
+        }
 
-        if (execvp(argv[0], (char * const *)argv.data()) < 0) {
+        if (execvpe(argv[0], (char * const *)argv.data(), (char * const *)envp.data()) < 0) {
             DBG("Failed to run the process:");
             for (auto arg : argv) {
-                DBG(" > %s", arg);
+                DBGE(" > %s", arg);
             }
-            return -1;
+            kill(getpid(), SIGTERM);
+            exit(-1);
         }
     }
     else {
@@ -104,7 +161,7 @@ static void run_task(ptask_t task) {
         return ;
     if (task->removing)
         return ;
-    pid_t ret = exec_task(task->o.task_path);
+    pid_t ret = exec_task(task);
     if (ret > 0) {
         task->o.pid = ret;
         task->o.state = PMGR_TASK_STATE_RUNNING;
@@ -194,6 +251,10 @@ int tasks_add(pmgr_task_t *msg) {
         return -1;
     }
 
+    /* This is here just to do the check */
+    std::vector<std::string> args;
+    ASSERT_FN(ssplit_args(msg->task_path, args));
+
     auto task = std::make_shared<pmgr_private_task_t>();
     tasks[msg->task_name] = task;
     task->o = *msg;
@@ -251,43 +312,40 @@ static co::task_t co_handle_procs(int sigfd) {
             continue ;
         }
 
-        int wstat;
         pid_t pid;
-        pid = wait(&wstat);
+        int wstat;
 
-        if (pid == -1) {
-            DBG("wait error");
-            co_await co::force_stop(-1);
-        }
-
-        bool closed_proc = false;
-        if (WIFEXITED(wstat)) {
-            DBG("%d exited, status=%d", pid, WEXITSTATUS(wstat));
-            closed_proc = true;
-        }
-        else if (WIFSIGNALED(wstat)) {
-            DBG("%d killed by signal %d", pid, WTERMSIG(wstat));
-            closed_proc = true;
-        }
-        else if (WIFSTOPPED(wstat)) {
-            DBG("%d stopped by signal %d", pid, WSTOPSIG(wstat));
-        }
-        else if (WIFCONTINUED(wstat)) {
-            DBG("%d continued\n", pid);
-        }
-
-        if (closed_proc) {
-            auto task = pid2task[pid];
-
-            pid2task.erase(pid);
-            task->closed_sem.rel();
-            task->o.state = PMGR_TASK_STATE_STOPPED;
-            if ((task->o.flags & PMGR_TASK_FLAG_PERSIST) && !task->removing) {
-                dead_tasks.push_back(task);
+        /* I hate starting and stopping processes with a passion */
+        while ((pid = waitpid(-1, &wstat, WNOHANG)) > 0) {
+            bool closed_proc = false;
+            if (WIFEXITED(wstat)) {
+                // DBG("%d exited, status=%d", pid, WEXITSTATUS(wstat));
+                closed_proc = true;
             }
-            if (task->revive && !task->removing) {
-                task->revive = false;
-                dead_tasks.push_back(task);
+            else if (WIFSIGNALED(wstat)) {
+                // DBG("%d killed by signal %d", pid, WTERMSIG(wstat));
+                closed_proc = true;
+            }
+            else if (WIFSTOPPED(wstat)) {
+                // DBG("%d stopped by signal %d", pid, WSTOPSIG(wstat));
+            }
+            else if (WIFCONTINUED(wstat)) {
+                // DBG("%d continued\n", pid);
+            }
+
+            if (closed_proc) {
+                auto task = pid2task[pid];
+
+                pid2task.erase(pid);
+                task->closed_sem.rel();
+                task->o.state = PMGR_TASK_STATE_STOPPED;
+                if ((task->o.flags & PMGR_TASK_FLAG_PERSIST) && !task->removing) {
+                    dead_tasks.push_back(task);
+                }
+                if (task->revive && !task->removing) {
+                    task->revive = false;
+                    dead_tasks.push_back(task);
+                }
             }
         }
     }
@@ -296,7 +354,8 @@ static co::task_t co_handle_procs(int sigfd) {
 }
 
 co::task_t co_tasks_clear() {
-    for (auto &[k, v] : tasks) {
+    auto copy_tasks = tasks;
+    for (auto &[k, v] : copy_tasks) {
         ASSERT_COFN(co_await co_tasks_waitrm(k));
     }
     co_return 0;

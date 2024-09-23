@@ -9,7 +9,7 @@ SRCS      += $(wildcard ${UTILS}/*.cpp)
 OBJS      := $(SRCS:.cpp=.o)
 DEPS      := $(SRCS:.cpp=.d)
 CXX 	  := g++-11
-CXX_FLAGS := -std=c++2a -g -export-dynamic
+CXX_FLAGS := -std=c++2a -g -export-dynamic -O3
 CXX_FLAGS += -Wno-format-security
 
 all: ${NAME}

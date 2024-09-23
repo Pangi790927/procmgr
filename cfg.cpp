@@ -35,11 +35,27 @@ int cfg_read() {
             };
             strcpy(pt.task_name, task["name"].get<std::string>().c_str());
             strcpy(pt.task_path, task["path"].get<std::string>().c_str());
+            if (HAS(task, "pwd"))
+                strcpy(pt.task_pwd, task["pwd"].get<std::string>().c_str());
+            if (HAS(task, "user"))
+                strcpy(pt.task_usr, task["user"].get<std::string>().c_str());
+            if (HAS(task, "group"))
+                strcpy(pt.task_grp, task["group"].get<std::string>().c_str());
 
             int32_t flags = 0;
             for (auto &flag : task["flags"]) {
                 if (flag.get<std::string>() == "PERSIST") {
                     flags |= (int32_t)PMGR_TASK_FLAG_PERSIST;
+                }
+                else if (flag.get<std::string>() == "NOSTDIO") {
+                    flags |= (int32_t)PMGR_TASK_FLAG_NOSTDIO;
+                }
+                else if (flag.get<std::string>() == "PWDSELF") {
+                    flags |= (int32_t)PMGR_TASK_FLAG_PWDSELF;
+                }
+                else {
+                    DBG("Unknown flag: %s", flag.get<std::string>().c_str());
+                    return -1;
                 }
             }
             pt.flags = (pmgr_task_flags_e)flags;
