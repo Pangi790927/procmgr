@@ -1,0 +1,18 @@
+[Unit]
+Description=In house process manager
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+WorkingDirectory=/usr/local/procmgr
+ExecStart=/usr/local/procmgr/procmgr
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target
+
