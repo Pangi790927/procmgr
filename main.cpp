@@ -1,6 +1,7 @@
 #define JSON_DIAGNOSTICS 1
 
 #include <sys/un.h>
+#include <sys/stat.h>
 
 #include "debug.h"
 #include "co_utils.h"
@@ -13,9 +14,40 @@
 #include "path_utils.h"
 
 /* TODO:
+    - add a way to save runtime tasks, maybe in some sort of intermediary config?
+        - maybe adding events would make this obsolete, as some sort of process could do this without
+        breaking
     - add channels
+        - so that tasks can receive events when other tasks do things
+        - events:
+            PROC_START
+            PROC_STOP
+            TASK_ADD
+            TASK_RM
     - add librarry
+        - not usefull, I think, maybe it is? This would be for processes to have better coms with
+        manager
     - add mutexes?
+        - no idea why this should be a thing, probably useless
+
+    some generic daemons:
+        - scheduler -> a daemon that has info about when things should run, that can receive tasks
+                       from remote sources and works with the manager to keep those tasks running
+                       also has a list of processes that is kept saved on disk
+        - proc_chat -> a daemon that only holds channels running, so comms, you connect to it
+                       start a channel or connect to an existing channel and you can ask who is on
+                       the channel, broadcast on the channel, send something to someone on the
+                       channel(for example ask some data provider to include you in the receivers of
+                       some event).
+
+    some daemons that I know I want to move to this thing:
+        - alarm clock
+        - eve trader
+        - temp monitor
+        - connector with some sort of imgui interface
+        - file syncer
+        - server holder
+        - watcher for all of those, so I know they work
  */
 
 co::task_t co_waitexit(int sigfd) {
@@ -52,6 +84,8 @@ co::task_t co_main(std::function<std::string(int)> args) {
 
 int main(int argc, char const *argv[])
 {
+    umask(0);
+
     std::vector<std::string> args;
     for (int i = 0; i < argc; i++)
         args.push_back(argv[i]);

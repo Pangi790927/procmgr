@@ -2,7 +2,7 @@ NAME      := a.out
 UTILS     := ./utils/
 
 INCLCUDES := -I${UTILS} -I${UTILS}/ap -I${UTILS}/co -I${UTILS}/generic -I.
-LIBS      := -lpthread -ldl -lglfw -lcurl
+LIBS      := -lpthread -ldl
 
 SRCS      := $(wildcard ./*.cpp)
 SRCS      += $(wildcard ${UTILS}/*.cpp)

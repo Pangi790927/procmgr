@@ -5,12 +5,12 @@
     /* Flags are the same as those in procmgr.h, without the prefix PMGR_TASK_FLAG_ */
     "tasks": [
         // { "name": "list", "path": "/bin/bash -c \"echo $PWD\"", "flags": [], "pwd": "/" },
-        { "name": "list", "path": "/bin/bash -c \"ls .\"", "flags": [], "pwd": "/home/" },
-        { "name": "list2", "path": "ls -l .", "flags": ["PWDSELF"]},
-        { "name": "echo123", "path": "echo 123", "flags": ["PERSIST", "NOSTDIO"]},
-        { "name": "user-uu", "group": "pangi", "user": "pangi", "path": "id"},
-        { "name": "user-ur", "group": "pangi", "user": "root",  "path": "id"},
-        { "name": "user-ru", "group": "root",  "user": "pangi", "path": "id"},
-        { "name": "user-rr", "group": "root",  "user": "root",  "path": "id"}
+        // { "name": "list", "path": "/bin/bash -c \"ls .\"", "flags": [], "pwd": "/home/" },
+        // { "name": "list2", "path": "ls -l .", "flags": ["PWDSELF"]},
+        // { "name": "echo123", "path": "echo 123", "flags": ["PERSIST", "NOSTDIO"]},
+        // { "name": "user-uu", "group": "pangi", "user": "pangi", "path": "id"},
+        // { "name": "user-ur", "group": "pangi", "user": "root",  "path": "id"},
+        // { "name": "user-ru", "group": "root",  "user": "pangi", "path": "id"},
+        // { "name": "user-rr", "group": "root",  "user": "root",  "path": "id"}
     ]
 }
