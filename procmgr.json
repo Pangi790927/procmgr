@@ -1,5 +1,6 @@
 {
     "sock_path": "./procmgr.sock",
+    "sock_perm": "0666", /* octal */ 
 
     /* Flags are the same as those in procmgr.h, without the prefix PMGR_TASK_FLAG_ */
     "tasks": [

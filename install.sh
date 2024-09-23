@@ -23,6 +23,7 @@ ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S cp procmgr_src/procmgr.
 
 ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S chown root:root /usr/local/procmgr/procmgr"
 ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S chmod +x /usr/local/procmgr/procmgr"
+ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S ln -s /usr/local/procmgr/procmgr /usr/bin/procmgr" || true
 
 ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S systemctl enable procmgr.service" || true
 ssh "$TARGET_USR@$TARGET_IP" "echo $TARGET_PAS | sudo -S systemctl start procmgr.service"

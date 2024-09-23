@@ -3,19 +3,24 @@
 #include "procmgr.h"
 #include "tasks.h"
 #include "sys_utils.h"
+#include "path_utils.h"
+
+#include <sys/stat.h>
 
 static int open_socket() {
     int fd;
     struct sockaddr_un sockaddr_un = {0};
 
     sockaddr_un.sun_family = AF_UNIX;
-    strcpy(sockaddr_un.sun_path, cfg_get()->sock_path.c_str());
+    strcpy(sockaddr_un.sun_path, path_get_relative(cfg_get()->sock_path).c_str());
 
     ASSERT_FN(fd = socket(AF_UNIX, SOCK_STREAM, 0));
     ASSERT_FN(fcntl(fd, F_SETFD, FD_CLOEXEC));
+
     remove(sockaddr_un.sun_path);
 
     ASSERT_FN(bind(fd, (struct sockaddr *) &sockaddr_un, sizeof(struct sockaddr_un)));
+    ASSERT_FN(chmod(sockaddr_un.sun_path, cfg_get()->sock_perm));
 
     return fd;
 }

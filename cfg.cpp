@@ -16,7 +16,7 @@ int cfg_read() {
     auto cfg_path = path_get_relative(CONFIG_PATH);
     std::ifstream ifile(cfg_path.c_str());
     if (!ifile.good()) {
-        DBG("Failed to open the config file");
+        DBG("Failed to open the config file: %s", cfg_path.c_str());
         return -1;
     }
     try {
@@ -25,6 +25,7 @@ int cfg_read() {
         json jcfg = json::parse(scfg, nullptr, true, true);
 
         _cfg.sock_path = jcfg["sock_path"];
+        _cfg.sock_perm = std::stoi(jcfg["sock_perm"].get<std::string>(), nullptr, 8);
 
         for (auto &task : jcfg["tasks"]) {
             pmgr_task_t pt{

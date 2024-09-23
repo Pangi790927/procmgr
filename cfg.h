@@ -9,6 +9,7 @@
 
 struct config_t {
     std::string sock_path;
+    int32_t sock_perm = 0;
     std::vector<pmgr_task_t> tasks;
 };
 

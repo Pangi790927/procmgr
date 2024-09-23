@@ -78,7 +78,7 @@ int main(int argc, char const *argv[])
     else if (usage == "ctrl" || usage == "c") {
         int server_fd;
 
-        if ((server_fd = pmgr_conn_socket(cfg_get()->sock_path.c_str())) < 0) {
+        if ((server_fd = pmgr_conn_socket(path_get_relative(cfg_get()->sock_path).c_str())) < 0) {
             DBG("Can't connect to procmgr, exiting");
             return -1;
         }
