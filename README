@@ -3,10 +3,10 @@ to safeguard from crashes and stucks from different utils. This manager has also
 schedule said processes: start them at specific times, etc.
 
 This manager will:
-	- allways be running (for example as a daemon)
-	- have a config file
-	- have a ctrl binary
-	- start/stop processes (restart them when they crash)
+	+ allways be running (for example as a daemon)
+	+ have a config file
+	+ have a ctrl binary
+	+ start/stop processes (restart them when they crash)
 	- (maybe not?) hold shared memory locations
 	- (maybe not?) hold db-s
 	- hold comm channels

@@ -1,5 +1,9 @@
 {
-	/* comment... */
+    "sock_path": "./procmgr.sock",
 
-	"sock_path": "./procmgr.sock"
+    /* Flags are the same as those in procmgr.h, without the prefix PMGR_TASK_FLAG_ */
+    "tasks": [
+        { "name": "list", "path": "ls .", "flags": [] },
+        { "name": "echo123", "path": "echo 123", "flags": ["PERSIST"]}
+    ]
 }
