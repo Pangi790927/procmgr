@@ -260,8 +260,6 @@ int tasks_add(pmgr_task_t *msg) {
     task->o = *msg;
     task->o.p = (intptr_t)task.get();
 
-    /* TODO: add flag to enable "run on add" */
-    run_task(task);
     return 0;
 }
 
