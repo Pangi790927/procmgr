@@ -1,7 +1,8 @@
-NAME      := a.out
-UTILS     := ./utils/
+NAME      := taskmon
+UTILS     := ../../utils/
 
 INCLCUDES := -I${UTILS} -I${UTILS}/ap -I${UTILS}/co -I${UTILS}/generic -I.
+INCLCUDES += -I../../
 LIBS      := -lpthread -ldl
 
 SRCS      := $(wildcard ./*.cpp)
@@ -12,12 +13,7 @@ CXX 	  := g++-11
 CXX_FLAGS := -std=c++2a -g -export-dynamic -O3
 CXX_FLAGS += -Wno-format-security
 
-all: ${NAME} daemons-build
-
-daemons-build:
-	make -C daemons/chanmgr
-	make -C daemons/scheduler
-	make -C daemons/taskmon
+all: ${NAME}
 
 ${NAME}: ${DEPS} ${OBJS}
 	${CXX} ${CXX_FLAGS} ${INCLCUDES} ${OBJS} ${LIBS} -o $@

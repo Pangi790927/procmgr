@@ -1,0 +1,3 @@
+A daemon that has info about when things should run, that can receive tasks from remote sources and
+works with the manager to keep those tasks running also has a list of processes that is kept saved
+on disk. This is a sort of proxy of the manager.

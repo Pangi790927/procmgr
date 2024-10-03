@@ -54,6 +54,9 @@ int cfg_read() {
                 else if (flag.get<std::string>() == "PWDSELF") {
                     flags |= (int32_t)PMGR_TASK_FLAG_PWDSELF;
                 }
+                else if (flag.get<std::string>() == "AUTORUN") {
+                    flags |= (int32_t)PMGR_TASK_FLAG_AUTORUN;
+                }
                 else {
                     DBG("Unknown flag: %s", flag.get<std::string>().c_str());
                     return -1;

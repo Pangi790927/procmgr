@@ -1,9 +1,14 @@
 {
+    /* TODO: figure out if to keep or not this path configurable */
     "sock_path": "./procmgr.sock",
+
     "sock_perm": "0666", /* octal */ 
 
     /* Flags are the same as those in procmgr.h, without the prefix PMGR_TASK_FLAG_ */
     "tasks": [
+        { "name": "sched", "path": "./daemons/scheduler/scheduler", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+        { "name": "chanmgr", "path": "./daemons/chanmgr/chanmgr", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+        { "name": "taskmon", "path": "./daemons/taskmon/taskmon", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] }
         // { "name": "list", "path": "/bin/bash -c \"echo $PWD\"", "flags": [], "pwd": "/" },
         // { "name": "list", "path": "/bin/bash -c \"ls .\"", "flags": [], "pwd": "/home/" },
         // { "name": "list2", "path": "ls -l .", "flags": ["PWDSELF"]},

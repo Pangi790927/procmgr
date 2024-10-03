@@ -48,6 +48,8 @@
         - file syncer
         - server holder
         - watcher for all of those, so I know they work
+        - some sort of updater or plugin installer (such that I can't break all other aps while
+          installing a daemon)
  */
 
 co::task_t co_waitexit(int sigfd) {
@@ -59,6 +61,7 @@ co::task_t co_waitexit(int sigfd) {
         ASSERT_ECOFN(CHK_BOOL(ret == sizeof(fdsi)));
 
         DBG("Quit");
+        co_await co_shutdown();
         co_await co::force_stop(0);
     }
     co_return 0;
@@ -109,7 +112,7 @@ int main(int argc, char const *argv[])
         pool.sched(co_main(arg));
         ASSERT_FN(pool.run());
     }
-    else if (usage == "ctrl" || usage == "c") {
+    else {
         int server_fd;
 
         if ((server_fd = pmgr_conn_socket(path_get_relative(cfg_get()->sock_path).c_str())) < 0) {
@@ -117,9 +120,9 @@ int main(int argc, char const *argv[])
             return -1;
         }
 
-        usage = arg(2);
-        std::string task = arg(3);
-        std::string path = arg(4);
+        usage = arg(1);
+        std::string task = arg(2);
+        std::string path = arg(3);
 
         if (task.size() + 1 >= PMGR_MAX_TASK_NAME) {
             DBG("task name too long");
@@ -135,6 +138,17 @@ int main(int argc, char const *argv[])
                 .hdr = {
                     .size = sizeof(pmgr_task_name_t),
                     .type = PMGR_MSG_START,
+                },
+            };
+            strcpy(msg.task_name, task.c_str());
+
+            ASSERT_FN(write_sz(server_fd, &msg, sizeof(msg)));
+        }
+        if (usage == "wstart") {
+            pmgr_task_name_t msg{
+                .hdr = {
+                    .size = sizeof(pmgr_task_name_t),
+                    .type = PMGR_MSG_WAITSTART,
                 },
             };
             strcpy(msg.task_name, task.c_str());
@@ -175,7 +189,7 @@ int main(int argc, char const *argv[])
             strcpy(msg.task_path, path.c_str());
 
             int flags = 0;
-            for (int i = 5; i < args.size(); i++) {
+            for (int i = 4; i < args.size(); i++) {
                 if (arg(i) == "-p") {
                     flags |= PMGR_TASK_FLAG_PERSIST;
                 }
@@ -242,10 +256,6 @@ int main(int argc, char const *argv[])
         ASSERT_FN(retmsg.retval);
 
         close(server_fd);
-    }
-    else {
-        DBG("Unknown usage type[%s]", usage.c_str());
-        return -1;
     }
     /* code */
     return 0;

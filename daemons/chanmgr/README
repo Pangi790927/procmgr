@@ -1,0 +1,10 @@
+A daemon that only holds channels running, so comms, you connect to it start a channel or connect
+to an existing channel and you can ask who is on the channel, broadcast on the channel, send
+something to someone on the channel(for example ask some data provider to include you in the
+receivers of some event).
+
+This program will connect to the main manager's event notifier and create a channel based on that.
+Further, this daemon is the main way to connect to programs in here.
+
+It' socket will be named "chanmgr.sock" and will reside in the manager's directory. It's not placed
+in it's directory so others can find it regardless of it's own location.

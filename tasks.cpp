@@ -1,5 +1,6 @@
 #include "tasks.h"
 #include "path_utils.h"
+#include "cmds.h"
 
 #include <signal.h>
 #include <unistd.h>
@@ -18,6 +19,7 @@ struct pmgr_private_task_t {
     bool revive = false;
     bool removing = false;
     co::sem_t closed_sem;
+    co::sem_t start_sem;
 };
 
 using ptask_t = std::shared_ptr<pmgr_private_task_t>;
@@ -27,13 +29,28 @@ static std::vector<ptask_t> dead_tasks;
 static std::set<ptask_t> tokill_tasks;
 static std::unordered_map<std::string, ptask_t> tasks;
 static std::unordered_map<pid_t, ptask_t> pid2task;
+static bool shutdown_flag = false;
 
 extern char **environ;
+
+static void trigger_event(pmgr_event_e type, std::string task_name, pid_t pid) {
+    pmgr_event_t ev{
+        .hdr {
+            .size = sizeof(pmgr_event_t),
+            .type = PMGR_MSG_EVENT_LOOP,
+        },
+        .ev_type = type,
+        .task_pid = pid,
+    };
+    strcpy(ev.task_name, task_name.c_str());
+    cmds_trigger_event(&ev);
+}
 
 static bool is_prefix(const std::string& prefix, const std::string& dst) {
     return dst.compare(0, prefix.size(), prefix) == 0;
 }
 
+/* This is kinda of a mess, I couldn't decide what things should do and it shows, TODO: revisit it */
 static pid_t exec_task(ptask_t task) {
     bool cutstdio = task->o.flags & PMGR_TASK_FLAG_NOSTDIO;
     bool pwdself = task->o.flags & PMGR_TASK_FLAG_PWDSELF;
@@ -68,10 +85,12 @@ static pid_t exec_task(ptask_t task) {
     argv.push_back(NULL);
 
     std::string pwd = task->o.task_pwd;
+    std::string progpath = argv[0];
     if (pwdself) {
         auto abs_path = path_get_abs(path_get_relative(argv[0]));
         std::size_t found = abs_path.find_last_of("/\\");
         pwd = abs_path.substr(0, found + 1);
+        progpath = abs_path;
     }
 
     std::vector<const char *> envp;
@@ -118,7 +137,17 @@ static pid_t exec_task(ptask_t task) {
             }
         }
 
-        if (execvpe(argv[0], (char * const *)argv.data(), (char * const *)envp.data()) < 0) {
+        /* I really, really, really, hate processes, soo, soo, much, I can't stress it enough, how
+        much I hate them. For god knows what reason they inherit everything and they piss me off. */
+        sigset_t mask;
+        sigemptyset(&mask);
+        sigaddset(&mask, SIGTERM);
+        sigaddset(&mask, SIGINT);
+        sigaddset(&mask, SIGTERM);
+        sigaddset(&mask, SIGCHLD);
+        ASSERT_FN(sigprocmask(SIG_UNBLOCK, &mask, NULL));
+
+        if (execvpe(progpath.c_str(), (char * const *)argv.data(), (char * const *)envp.data()) < 0) {
             DBG("Failed to run the process:");
             for (auto arg : argv) {
                 DBGE(" > %s", arg);
@@ -135,10 +164,14 @@ static pid_t exec_task(ptask_t task) {
 }
 
 static int kill_task(ptask_t task, bool force) {
-    if (task->o.state == PMGR_TASK_STATE_STOPPED)
+    if (task->o.state == PMGR_TASK_STATE_STOPPED) {
+        DBG("No:stopped");
         return 0;
-    if (task->o.state == PMGR_TASK_STATE_STOPING)
+    }
+    if (task->o.state == PMGR_TASK_STATE_STOPING) {
+        DBG("No:stopping");
         return 0;
+    }
 
     if (force) {
         kill(task->o.pid, SIGKILL);
@@ -165,8 +198,10 @@ static void run_task(ptask_t task) {
     if (ret > 0) {
         task->o.pid = ret;
         task->o.state = PMGR_TASK_STATE_RUNNING;
+        task->start_sem.rel();
         task->closed_sem = co::sem_t(0);
         pid2task[ret] = task;
+        trigger_event(PMGR_EVENT_TASK_START, task->o.task_name, task->o.pid);
     }
     else if (HAS(tasks, task->o.task_name) && (task->o.flags & PMGR_TASK_FLAG_PERSIST)) {
         dead_tasks.push_back(task);
@@ -175,6 +210,10 @@ static void run_task(ptask_t task) {
 
 /* start a task */
 int tasks_start(const std::string& task_name) {
+    if (shutdown_flag) {
+        DBG("Can't do that, shuting down...");
+        return -1;
+    }
     if (!HAS(tasks, task_name)) {
         DBG("Task does not exist: %s", task_name.c_str());
         return -1;
@@ -202,6 +241,10 @@ int tasks_stop(const std::string& task_name) {
 
 /* add a task */
 int tasks_add(pmgr_task_t *msg) {
+    if (shutdown_flag) {
+        DBG("Can't do that, shuting down...");
+        return -1;
+    }
     bool valid = false;
     if (msg->list_terminator) {
         DBG("Can't add a terminator task...");
@@ -259,20 +302,25 @@ int tasks_add(pmgr_task_t *msg) {
     tasks[msg->task_name] = task;
     task->o = *msg;
     task->o.p = (intptr_t)task.get();
+    task->o.hdr.type = PMGR_MSG_ADD;
 
+    /* TODO: add flag to enable "run on add" */
+    if (task->o.flags & PMGR_TASK_FLAG_AUTORUN)
+        run_task(task);
+    
+    trigger_event(PMGR_EVENT_TASK_ADD, task->o.task_name, task->o.pid);
     return 0;
 }
 
-/* remove a task (Obs: it will die in max 30 seconds) */
+/* remove a task */
 int tasks_rm(const std::string& task_name) {
     if (!HAS(tasks, task_name)) {
         DBG("Task does not exist: %s", task_name.c_str());
         return -1;
     }
-    if (tasks[task_name]->o.state != PMGR_TASK_STATE_STOPPED) {
-        DBG("Process must be stopped to remove");
-        return -1;
-    }
+    auto task = tasks[task_name];
+    trigger_event(PMGR_EVENT_TASK_RM, task->o.task_name, task->o.pid);
+    task->start_sem.rel();
     tasks.erase(task_name);
     return 0;
 }
@@ -295,6 +343,24 @@ int tasks_list(std::vector<pmgr_task_t>& list) {
 
 bool tasks_exists(const std::string& task_name) {
     return HAS(tasks, task_name);
+}
+
+int tasks_get(pid_t pid, pmgr_task_t *task) {
+    if (!HAS(pid2task, pid)) {
+        DBG("Task pid[%d] doesn't exist", pid);
+        return -1;
+    }
+    *task = pid2task[pid]->o;
+    return 0;
+}
+
+int tasks_get(std::string name, pmgr_task_t *task) {
+    if (!HAS(tasks, name)) {
+        DBG("Task[%s] doesn't exist", name.c_str());
+        return -1;
+    }
+    *task = tasks[name]->o;
+    return 0;
 }
 
 static co::task_t co_handle_procs(int sigfd) {
@@ -337,6 +403,7 @@ static co::task_t co_handle_procs(int sigfd) {
                 pid2task.erase(pid);
                 task->closed_sem.rel();
                 task->o.state = PMGR_TASK_STATE_STOPPED;
+                trigger_event(PMGR_EVENT_TASK_STOP, task->o.task_name, task->o.pid);
                 if ((task->o.flags & PMGR_TASK_FLAG_PERSIST) && !task->removing) {
                     dead_tasks.push_back(task);
                 }
@@ -351,6 +418,16 @@ static co::task_t co_handle_procs(int sigfd) {
     co_return 0;
 }
 
+co::task_t co_shutdown() {
+    if (shutdown_flag) {
+        DBG("Double shutdown!?");
+        co_return -1;
+    }
+    shutdown_flag = true;
+    ASSERT_COFN(co_await co_tasks_clear());
+    co_return 0;
+}
+
 co::task_t co_tasks_clear() {
     auto copy_tasks = tasks;
     for (auto &[k, v] : copy_tasks) {
@@ -359,12 +436,25 @@ co::task_t co_tasks_clear() {
     co_return 0;
 }
 
+co::task_t co_task_waitadd(pmgr_task_t *msg) {
+    ASSERT_COFN(tasks_add(msg));
+    auto task = tasks[msg->task_name];
+    co_await task->start_sem;
+    ASSERT_COFN(CHK_BOOL(task->o.pid != 0)); /* this would mean that the process was removed before
+                                                starting up */
+    co_return 0;
+};
+
 co::task_t co_tasks_waitstop(const std::string& task_name) {
     if (!HAS(tasks, task_name)) {
         DBG("Task does not exist: %s", task_name.c_str());
         co_return -1;
     }
-    co_await tasks[task_name]->closed_sem;
+    auto task = tasks[task_name];
+    if (task->o.state == PMGR_TASK_STATE_STOPPED)
+        co_return 0;
+    ASSERT_COFN(tasks_stop(task_name));
+    co_await task->closed_sem;
     co_return 0;
 }
 
@@ -373,7 +463,8 @@ co::task_t co_tasks_waitrm(const std::string& task_name) {
         DBG("Task does not exist: %s", task_name.c_str());
         co_return -1;
     }
-    tasks[task_name]->removing = true;
+    auto task = tasks[task_name];
+    task->removing = true;
     ASSERT_COFN(co_await co_tasks_waitstop(task_name))
     tasks.erase(task_name);
     co_return 0;

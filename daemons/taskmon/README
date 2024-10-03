@@ -1,0 +1,3 @@
+This monitors the processes for events and remotes can connect to it in order to receive those events.
+This is a middleman between the main manager and different remotes that are potentialy running on
+another computer.

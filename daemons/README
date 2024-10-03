@@ -1,0 +1,2 @@
+Each directory in here is a daemon. The idea is that those can now break without taking with them
+the whole system and should be added to the system if needed.
