@@ -17,10 +17,17 @@ ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S systemctl stop procmg
 ssh "$TARGET_USR@$TARGET_IP" "make -C procmgr_src clean"
 ssh "$TARGET_USR@$TARGET_IP" "make -C procmgr_src"
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S mkdir -p /usr/local/procmgr"
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S mkdir -p /usr/local/procmgr/daemons/chanmgr"
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S mkdir -p /usr/local/procmgr/daemons/taskmon"
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S mkdir -p /usr/local/procmgr/daemons/scheduler"
 
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/a.out /usr/local/procmgr/procmgr"
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/procmgr.json /usr/local/procmgr/"
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/procmgr.service /etc/systemd/system/"
+
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/daemons/chanmgr/chanmgr /usr/local/procmgr/daemons/chanmgr/chanmgr"
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/daemons/taskmon/taskmon /usr/local/procmgr/daemons/taskmon/taskmon"
+ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S cp procmgr_src/daemons/scheduler/scheduler /usr/local/procmgr/daemons/scheduler/scheduler"
 
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S chown root:root /usr/local/procmgr/procmgr"
 ssh "$TARGET_USR@$TARGET_IP" "echo '$TARGET_PAS' | sudo -S chmod +x /usr/local/procmgr/procmgr"
