@@ -12,7 +12,7 @@ SRCS      += $(wildcard ${UTILS}/pymod/*.cpp)
 OBJS      := $(SRCS:.cpp=.o)
 DEPS      := $(SRCS:.cpp=.d)
 CXX 	  := g++-11
-CXX_FLAGS := -std=c++2a -g -fPIC -export-dynamic
+CXX_FLAGS := -std=c++2a -g -fPIC -O3 -export-dynamic
 CXX_FLAGS += -Wno-format-security
 CXX_FLAGS += -DPYMOD_MODULE_NAME=PyInit_procmgr_py
 
