@@ -55,10 +55,10 @@ enum pmgr_msg_type_e : int32_t {
     PMGR_MSG_GET_NAME,
 
     /* Registers or unregisters for an event on a connection, the connection starts with a
-    EVENT_LOOP event */
+    EVENT_LOOP event that is discarded */
     PMGR_MSG_EVENT_LOOP,
     PMGR_MSG_REGISTER_EVENT,
-    PMGR_MSG_UNREGISTER_EVENT,
+    PMGR_MSG_UNREGISTER_EVENT, /* TODO: this event needs implementing */
 
     /* --- Responses: ---  */
 
@@ -142,7 +142,7 @@ struct PACKED_STRUCT pmgr_chann_msg_t {
     int64_t src_id; /* the internal id of the sender (channel-wise) */
     int64_t dst_id; /* the internal id of the destination (channel-wise) */
 
-    /* The rest of the message will stay here */
+    /* content: The rest of the message will stay here */
 };
 
 /* message to send identity of a connected client */

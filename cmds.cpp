@@ -106,7 +106,7 @@ static co::task_t co_do_cmd(int fd, pmgr_hdr_t *hdr) {
         } break;
         case PMGR_MSG_LOAD_CFG: {
             DBG("LOAD CFG");
-            /*TODO:*/
+            /* TODO: */
             trigger_event(PMGR_EVENT_CFG_RELOAD);
         } break;
         case PMGR_MSG_CLEAR: {

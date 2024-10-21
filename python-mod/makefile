@@ -3,6 +3,7 @@ NAME      := procmgr_py.so
 UTILS     := ../utils/
 INCLCUDES := -I${UTILS} -I${UTILS}/ap -I${UTILS}/co -I${UTILS}/generic -I${UTILS}/pymod -I.
 INCLCUDES += -I/usr/include/python3.8
+INCLCUDES += -I../
 LIBS      := -lpthread -ldl -lglfw -lcurl
 LIBS      += -lpython3.8
 

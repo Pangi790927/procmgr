@@ -40,9 +40,11 @@ int main(int argc, char const *argv[])
     ASSERT_FN(fd = pmgr_conn_socket(sock_str.c_str()));
     FnScope scope([fd]{ close(fd); });
 
-    pmgr_hdr_t evstart {
-        .size = sizeof(pmgr_hdr_t),
-        .type = PMGR_MSG_EVENT_LOOP,
+    pmgr_event_t evstart {
+        .hdr = {
+            .size = sizeof(pmgr_hdr_t),
+            .type = PMGR_MSG_EVENT_LOOP,
+        }
     };
     ASSERT_FN(write_sz(fd, &evstart, sizeof(evstart)));
 
@@ -50,7 +52,7 @@ int main(int argc, char const *argv[])
     pmgr_event_t ev_reg {
         .hdr = {
             .size = sizeof(pmgr_event_t),
-            .type = PMGR_MSG_EVENT_LOOP,
+            .type = PMGR_MSG_REGISTER_EVENT,
         },
         .ev_type = PMGR_EVENT_MASK,
         .ev_flags = PMGR_EVENT_FLAGS_MASK,
