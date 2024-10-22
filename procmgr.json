@@ -8,7 +8,8 @@
     "tasks": [
         { "name": "sched", "path": "./daemons/scheduler/scheduler", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
         { "name": "chanmgr", "path": "./daemons/chanmgr/chanmgr", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
-        { "name": "taskmon", "path": "./daemons/taskmon/taskmon", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] }
+        { "name": "taskmon", "path": "./daemons/taskmon/taskmon", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+        { "name": "pyexamp", "path": "./daemons/pyexamp/pyexamp.py", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] }
         // { "name": "list", "path": "/bin/bash -c \"echo $PWD\"", "flags": [], "pwd": "/" },
         // { "name": "list", "path": "/bin/bash -c \"ls .\"", "flags": [], "pwd": "/home/" },
         // { "name": "list2", "path": "ls -l .", "flags": ["PWDSELF"]},

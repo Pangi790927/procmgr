@@ -193,12 +193,10 @@ co::task_t co_await_register() {
             };
             break;
             case AWAITER_TYPE_READ: {
-                DBG("AWAITER_TYPE_READ");
                 co_await co_read(awaiter);
             };
             break;
             case AWAITER_TYPE_WRITE: {
-                DBG("AWAITER_TYPE_WRITE");
                 co_await co_write(awaiter);
             };
             break;
@@ -212,10 +210,6 @@ co::task_t co_await_register() {
 
 co::task_t co_event_loop() {
     co_await co::sched(co_await_register());
-    while (true) {
-        co_await co::sleep_s(3);
-        DBG("looopapool");
-    }
     co_return 0;
 }
 
@@ -285,7 +279,7 @@ static PyObject *disconnect(PyObject *self, PyObject *args) {
 static PyObject *write_msg(PyObject *self, PyObject *args) {
     int64_t chan_id;
     const char *str_msg; /* TODO: accept jsons/dicts and serialize them ourselves */
-    if (!PyArg_ParseTuple(args, "Ks", &chan_id, str_msg)) {
+    if (!PyArg_ParseTuple(args, "Ks", &chan_id, &str_msg)) {
         DBG("Failed parse args");
         return NULL;
     }
@@ -314,6 +308,10 @@ static PyObject *read_msg(PyObject *self, PyObject *args) {
     return aw;
 }
 
+static PyObject *get_parent_dir(PyObject *self, PyObject *args) {
+    return PyUnicode_FromString(path_pid_dir(getppid()).c_str());
+}
+
 std::vector<PyMethodDef> module_methods = {
     PyMethodDef{"example_awaitable", example_awaitable, METH_VARARGS, "doc:example awaitable"},
     PyMethodDef{"get_defs", get_defs, METH_VARARGS, "doc:get_defs"},
@@ -321,6 +319,7 @@ std::vector<PyMethodDef> module_methods = {
     PyMethodDef{"disconnect", disconnect, METH_VARARGS, "doc:disconnect"},
     PyMethodDef{"write_msg", write_msg, METH_VARARGS, "doc:write_msg"},
     PyMethodDef{"read_msg", read_msg, METH_VARARGS, "doc:read_msg"},
+    PyMethodDef{"get_parent_dir", get_parent_dir, METH_VARARGS, "doc:get_parent_dir"},
 };
 
 int pymod_pre_init(std::vector<PyMethodDef> &methods, PyModuleDef *module_def) {

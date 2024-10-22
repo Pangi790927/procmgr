@@ -18,6 +18,7 @@ daemons-build:
 	make -C daemons/chanmgr
 	make -C daemons/scheduler
 	make -C daemons/taskmon
+	make -C python-mod
 
 ${NAME}: ${DEPS} ${OBJS}
 	${CXX} ${CXX_FLAGS} ${INCLCUDES} ${OBJS} ${LIBS} -o $@
