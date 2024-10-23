@@ -17,28 +17,11 @@
     - add a way to save runtime tasks, maybe in some sort of intermediary config?
         - maybe adding events would make this obsolete, as some sort of process could do this without
         breaking
-    - add channels
-        - so that tasks can receive events when other tasks do things
-        - events:
-            PROC_START
-            PROC_STOP
-            TASK_ADD
-            TASK_RM
-    - add librarry
-        - not usefull, I think, maybe it is? This would be for processes to have better coms with
-        manager
-    - add mutexes?
-        - no idea why this should be a thing, probably useless
 
     some generic daemons:
         - scheduler -> a daemon that has info about when things should run, that can receive tasks
                        from remote sources and works with the manager to keep those tasks running
                        also has a list of processes that is kept saved on disk
-        - proc_chat -> a daemon that only holds channels running, so comms, you connect to it
-                       start a channel or connect to an existing channel and you can ask who is on
-                       the channel, broadcast on the channel, send something to someone on the
-                       channel(for example ask some data provider to include you in the receivers of
-                       some event).
 
     some daemons that I know I want to move to this thing:
         - alarm clock
@@ -50,7 +33,20 @@
         - watcher for all of those, so I know they work
         - some sort of updater or plugin installer (such that I can't break all other aps while
           installing a daemon)
- */
+
+    Better output: 
+        1. Create a pipe for all outputs:
+            - err fd
+            - out fd
+        2. Replace default outputs with those (dup2)
+        3. Create coro to handle them as such:
+            - have circular buffer of 1M
+            - accept on un socket connections for each of those that consumes from pipes and
+            sends to users
+            - sends to users based on newline
+            - have a cursor for each accepted process and a default at max buff end cursor for
+            newcomers
+*/
 
 co::task_t co_waitexit(int sigfd) {
     while (true) {

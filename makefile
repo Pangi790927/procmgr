@@ -38,3 +38,7 @@ clean:
 	rm -f ${OBJS}
 	rm -f ${DEPS}
 	rm -f ${NAME}
+	make -C daemons/chanmgr clean
+	make -C daemons/scheduler clean
+	make -C daemons/taskmon clean
+	make -C python-mod clean

@@ -201,6 +201,7 @@ static void run_task(ptask_t task) {
         task->start_sem.rel();
         task->closed_sem = co::sem_t(0);
         pid2task[ret] = task;
+        DBG("Started: %s[%ld]", task->o.task_name, task->o.pid);
         trigger_event(PMGR_EVENT_TASK_START, task->o.task_name, task->o.pid);
     }
     else if (HAS(tasks, task->o.task_name) && (task->o.flags & PMGR_TASK_FLAG_PERSIST)) {
@@ -387,14 +388,14 @@ static co::task_t co_handle_procs(int sigfd) {
                 closed_proc = true;
             }
             else if (WIFSIGNALED(wstat)) {
-                // DBG("%d killed by signal %d", pid, WTERMSIG(wstat));
+                DBG("%d killed by signal %d", pid, WTERMSIG(wstat));
                 closed_proc = true;
             }
             else if (WIFSTOPPED(wstat)) {
-                // DBG("%d stopped by signal %d", pid, WSTOPSIG(wstat));
+                DBG("%d stopped by signal %d", pid, WSTOPSIG(wstat));
             }
             else if (WIFCONTINUED(wstat)) {
-                // DBG("%d continued\n", pid);
+                DBG("%d continued\n", pid);
             }
 
             if (closed_proc) {
@@ -403,6 +404,7 @@ static co::task_t co_handle_procs(int sigfd) {
                 pid2task.erase(pid);
                 task->closed_sem.rel();
                 task->o.state = PMGR_TASK_STATE_STOPPED;
+                DBG("Stopped: %s[%ld]", task->o.task_name, task->o.pid);
                 trigger_event(PMGR_EVENT_TASK_STOP, task->o.task_name, task->o.pid);
                 if ((task->o.flags & PMGR_TASK_FLAG_PERSIST) && !task->removing) {
                     dead_tasks.push_back(task);

@@ -230,7 +230,7 @@ int json2pmgr(std::string &src, std::shared_ptr<pmgr_hdr_t> &dst) {
                 uint8_t *data = new uint8_t[data_len];
                 auto msg = (pmgr_chann_msg_t *)data;
                 *msg = pmgr_chann_msg_t {
-                    .hdr = { .size = sizeof(pmgr_chann_msg_t), .type = msg_type },
+                    .hdr = { .size = data_len, .type = msg_type },
                     .flags = (pmgr_chan_flags_e)jsrc["flags"].get<int32_t>(),
                     .src_id = jsrc["src_id"].get<int64_t>(),
                     .dst_id = jsrc["dst_id"].get<int64_t>(),
@@ -390,11 +390,13 @@ int json2pmgr(pmgr_hdr_t *src, std::string &dst) {
             }
             // we need to make sure that the content is a string, else just don't add it
             auto msg = (pmgr_chann_msg_t *)src;
-            auto contents = (char *)msg + 1;
+            auto contents = (char *)(msg + 1);
             bool has_null = false;
             for (int i = 0; i < src->size - sizeof(pmgr_chann_msg_t); i++)
-                if (contents[i] == '\0')
+                if (contents[i] == '\0') {
                     has_null = true;
+                    break;
+                }
             json jdst = {
                 {"hdr", {{"type", (int32_t)src->type}, {"size", (int32_t)src->size}}},
                 {"flags", (int32_t)msg->flags},

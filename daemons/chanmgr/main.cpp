@@ -4,6 +4,7 @@
 #include "sys_utils.h"
 #include "co_utils.h"
 #include "path_utils.h"
+#include "pmgrch.h"
 
 struct client_t;
 struct channel_t;
@@ -185,10 +186,12 @@ co::task_t co_client_messaging(client_p client) {
                 auto msg = (pmgr_chann_msg_t *)hdr;
 
                 if (msg->flags & PMGR_CHAN_BCAST) {
-                    for (auto [_, dst_c] : chan->id2client) {
-                        if (co_await write_msg(dst_c.lock(), msg, hdr->size) < 0) {
-                            DBG("Failed to send message...");
-                            retmsg.retval -= 1;
+                    for (auto [id, dst_c] : chan->id2client) {
+                        if (id != client->id) {
+                            if (co_await write_msg(dst_c.lock(), msg, hdr->size) < 0) {
+                                DBG("Failed to send message...");
+                                retmsg.retval -= 1;
+                            }
                         }
                     }
                 }
@@ -265,6 +268,8 @@ co::task_t co_client_register(int fd, pid_t pid) {
         },
         .retval = 0,
     };
+    FnScope err_scope([fd]{ close(fd); });
+
     int ret = co_await co::read_sz(fd, &regmsg, sizeof(regmsg)); /* TODO: timeo? */
 
     if (ret != sizeof(regmsg)) {
@@ -278,7 +283,7 @@ co::task_t co_client_register(int fd, pid_t pid) {
     }
 
     bool has_null = false;
-    for (int i = 0; i < regmsg.chan_name[i]; i++)
+    for (int i = 0; i < PMGR_MAX_TASK_NAME; i++)
         if (!regmsg.chan_name[i]) {
             has_null = true;
             break;
@@ -287,6 +292,7 @@ co::task_t co_client_register(int fd, pid_t pid) {
         DBG("Invalid channel name");
         co_return -1;
     }
+    DBG("Channel: %s[flags:%x]", regmsg.chan_name, regmsg.flags);
 
     client_p client = std::make_shared<client_t>(client_t{
         .id = last_client_id++,
@@ -298,19 +304,23 @@ co::task_t co_client_register(int fd, pid_t pid) {
     channel_p chan;
 
     if (HAS(channels, regmsg.chan_name)) {
+        DBG("Existing channel");
         chan = channels[regmsg.chan_name].lock();
     }
+
     if (!chan && (regmsg.flags & PMGR_CHAN_CREAT)) {
+        DBG("Will create channel");
         chan = std::make_shared<channel_t>(channel_t{
             .name = regmsg.chan_name,
         });
         channels[regmsg.chan_name] = chan;
     }
     else if (!chan && (regmsg.flags & PMGR_CHAN_WAITC)) {
+        DBG("Will wait for channel");
         chan_waiters[regmsg.chan_name].insert(client_wp(client));
         co_await client->wait_ch_sem;
     }
-    else {
+    else if (!chan) {
         DBG("Failed to get channel");
         co_await co::stopfd(client->fd); /* stop the reading */
 
@@ -321,19 +331,23 @@ co::task_t co_client_register(int fd, pid_t pid) {
 
     /* awake all the clients that where waiting for the channel to exist */
     for (auto _cp : chan_waiters[chan->name])
-        if (client_p cp = _cp.lock())
+        if (client_p cp = _cp.lock()) {
+            DBG("awake waiter");
             cp->wait_ch_sem.rel();
+        }
     chan_waiters.erase(chan->name);
 
     /* add the client to this channel */
     chan->fd2client[fd] = client;
-    chan->id2client[fd] = client;
+    chan->id2client[client->id] = client;
     client->ch = chan;
 
     /* notify that channel was aquired */
     retmsg.retval = 0;
     ASSERT_COFN(co_await co::write_sz(fd, &retmsg, sizeof(retmsg)));
+    DBG("Sent initial retmsg: %d", int(sizeof(retmsg)));
 
+    err_scope.disable();
     co_return 0;
 }
 
@@ -412,6 +426,8 @@ co::task_t co_main() {
 
 int main(int argc, char const *argv[])
 {
+    ASSERT_FN(pmgrch_init());
+
     DBG("CHANNEL_MANAGER");
     parent_dir = path_pid_dir(getppid());
     parent_sock = parent_dir + "procmgr.sock";

@@ -3,6 +3,7 @@
 #include "sys_utils.h"
 #include "co_utils.h"
 #include "path_utils.h"
+#include "pmgrch.h"
 
 const char *ev2str(pmgr_event_e ev_type) {
     switch (ev_type) {
@@ -29,6 +30,8 @@ co::task_t co_ev_recver(int fd) {
 
 int main(int argc, char const *argv[])
 {
+    ASSERT_FN(pmgrch_init());
+
     DBG("TASK_MONITOR");
 
     std::string cfg_str = path_pid_dir(getppid()) + "procmgr.json";

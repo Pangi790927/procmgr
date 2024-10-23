@@ -6,17 +6,15 @@
 
     /* Flags are the same as those in procmgr.h, without the prefix PMGR_TASK_FLAG_ */
     "tasks": [
-        { "name": "sched", "path": "./daemons/scheduler/scheduler", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
-        { "name": "chanmgr", "path": "./daemons/chanmgr/chanmgr", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
-        { "name": "taskmon", "path": "./daemons/taskmon/taskmon", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
-        { "name": "pyexamp", "path": "./daemons/pyexamp/pyexamp.py", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] }
-        // { "name": "list", "path": "/bin/bash -c \"echo $PWD\"", "flags": [], "pwd": "/" },
-        // { "name": "list", "path": "/bin/bash -c \"ls .\"", "flags": [], "pwd": "/home/" },
-        // { "name": "list2", "path": "ls -l .", "flags": ["PWDSELF"]},
-        // { "name": "echo123", "path": "echo 123", "flags": ["PERSIST", "NOSTDIO"]},
-        // { "name": "user-uu", "group": "pangi", "user": "pangi", "path": "id"},
-        // { "name": "user-ur", "group": "pangi", "user": "root",  "path": "id"},
-        // { "name": "user-ru", "group": "root",  "user": "pangi", "path": "id"},
-        // { "name": "user-rr", "group": "root",  "user": "root",  "path": "id"}
-    ]
+        /* Crash handler */
+        {"name":"pmgrch",  "path": "./daemons/pmgrch/pmgrch.py", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+
+        /* Internal utils */
+        {"name":"sched",   "path": "./daemons/scheduler/scheduler", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+        {"name":"chanmgr", "path": "./daemons/chanmgr/chanmgr", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+        {"name":"taskmon", "path": "./daemons/taskmon/taskmon", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] },
+
+        /* external apps */
+        {"name":"pyexamp", "path": "./daemons/pyexamp/pyexamp.py", "flags": ["AUTORUN", "PERSIST", "PWDSELF"] }
+     ]
 }
