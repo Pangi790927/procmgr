@@ -48,6 +48,47 @@
             newcomers
 */
 
+co::task_t co_redirect_out() {
+    DBG_SCOPE();
+    int redirect[2];
+    int file_fd;
+
+    ASSERT_ECOFN(pipe(redirect))
+    int read_end = redirect[0];
+    int write_end = redirect[1];
+
+    ASSERT_ECOFN(file_fd = open(
+            path_get_relative("procmgr.std-err-out").c_str(), O_CREAT | O_WRONLY, 0666));
+    FnScope scope([file_fd]{close(file_fd);});
+
+    int old_out = -1;
+    if (STDOUT_FILENO >= 0) {
+        /* we are also redirecting the output to the old output */
+        ASSERT_ECOFN(old_out = dup(STDOUT_FILENO));
+    }
+    if (STDERR_FILENO >= 0) {
+        /* we don't care about the old err */
+        close(STDERR_FILENO);
+    }
+
+    ASSERT_ECOFN(dup2(write_end, STDOUT_FILENO));
+    ASSERT_ECOFN(dup2(write_end, STDERR_FILENO));
+
+    char buff[1024];
+    while (true) {
+        int ret = co_await co::read(read_end, buff, sizeof(buff));
+        ASSERT_ECOFN(ret);
+
+        /* TODO: trim the output after writing too much */
+        /* we know redirect out,err to a file and to the old out */
+        if (old_out >= 0) {
+            ASSERT_ECOFN(co_await co::write_sz(old_out, buff, ret));
+        }
+        ASSERT_ECOFN(co_await co::write_sz(file_fd, buff, ret));
+    }
+    co_return 0;
+}
+
 co::task_t co_waitexit(int sigfd) {
     while (true) {
         struct signalfd_siginfo  fdsi;
@@ -74,6 +115,7 @@ co::task_t co_main(std::function<std::string(int)> args) {
     ASSERT_ECOFN(sigprocmask(SIG_BLOCK, &mask, NULL));
     ASSERT_ECOFN(sigfd = signalfd(-1, &mask, SFD_CLOEXEC));
 
+    co_await co::sched(co_redirect_out());
     co_await co::sched(co_waitexit(sigfd));
     co_await co::sched(co_cmds());
     co_await co::sched(co_tasks());
