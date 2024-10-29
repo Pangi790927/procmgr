@@ -73,9 +73,9 @@ def write_crash_raport(target_pid, file_out):
 str_pmgr_defs = pmgr.get_defs()
 pmgr_defs = DefaultMunch.fromDict(json.loads(str_pmgr_defs))
 
-# we are called by pmgr so that is our parent dir
-pmgr_dir = pmgr.get_parent_dir()
+pmgr_dir = pmgr.get_mod_dir()
 sock_path = f"{pmgr_dir}/pmgrch.sock"
+print(f"[PMGRCH] sock_path: {sock_path}")
 
 # create the socket inside the parent dir
 if os.path.exists(sock_path):

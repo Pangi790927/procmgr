@@ -40,6 +40,7 @@ inline int pmgrch_init() {
 
     crash_socket.sun_family = AF_UNIX;
     strcpy(crash_socket.sun_path, sock_path.c_str());
+    DBG("sock_path: %s", sock_path.c_str());
 
     ASSERT_FN(pmgrch_sock_fd = socket(AF_UNIX, SOCK_STREAM, 0));
     int conn_res = -1;

@@ -48,45 +48,133 @@
             newcomers
 */
 
-co::task_t co_redirect_out() {
-    DBG_SCOPE();
-    int redirect[2];
-    int file_fd;
+static int redir_old_out = -1;
+static int redir_old_err = -1;
+static int redir_read_end = -1;
+static std::atomic<bool> stop_redir_thread = false;
+static std::atomic<bool> force_stop_redir_thread = false;
 
-    ASSERT_ECOFN(pipe(redirect))
-    int read_end = redirect[0];
-    int write_end = redirect[1];
+static std::thread redir_th;
 
-    ASSERT_ECOFN(file_fd = open(
-            path_get_relative("procmgr.std-err-out").c_str(), O_CREAT | O_WRONLY, 0666));
-    FnScope scope([file_fd]{close(file_fd);});
+/* don't want this dependent on the coro, mostly because if the coro is blocked, then no out gets
+out */
+int th_redirect_out() {
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGHUP);
+    sigaddset(&mask, SIGQUIT);
+    sigaddset(&mask, SIGPWR);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &mask, NULL); /* we don't want to get those signals here, but in the
+                                            handle bellow */
 
-    int old_out = -1;
-    if (STDOUT_FILENO >= 0) {
-        /* we are also redirecting the output to the old output */
-        ASSERT_ECOFN(old_out = dup(STDOUT_FILENO));
+    FnScope scope;
+
+    int file_fd = open(path_get_relative("procmgr.std-err-out").c_str(),
+            O_CREAT | O_RDWR | O_CLOEXEC | O_TRUNC, 0666);
+
+    auto errmsg = [&file_fd](const std::string &msg) {
+        if (redir_old_out >= 0)
+            dprintf(redir_old_out, "[th_redirect_out] %s %s[%d]\n",
+                    msg.c_str(), strerror(errno), errno);
+        if (file_fd >= 0)
+            dprintf(      file_fd, "[th_redirect_out] %s %s[%d]\n",
+                    msg.c_str(), strerror(errno), errno);
+    };
+
+    if (file_fd < 0) {
+        errmsg("Failed to open file");
+        return -1;
     }
-    if (STDERR_FILENO >= 0) {
-        /* we don't care about the old err */
-        close(STDERR_FILENO);
-    }
-
-    ASSERT_ECOFN(dup2(write_end, STDOUT_FILENO));
-    ASSERT_ECOFN(dup2(write_end, STDERR_FILENO));
+    scope([file_fd]{ close(file_fd); });
+    scope([]{
+        /* This means that the handler didn't catch this up */
+        if (force_stop_redir_thread)
+            exit(-1);
+    });
 
     char buff[1024];
-    while (true) {
-        int ret = co_await co::read(read_end, buff, sizeof(buff));
-        ASSERT_ECOFN(ret);
+    while (!stop_redir_thread) {
+        if (stop_redir_thread) {
+            /* we will read until we exit by error */
+            close(fileno(stdout));
+            close(fileno(stderr));
+
+            int flags = fcntl(redir_read_end, F_GETFL);
+            flags |= O_NONBLOCK;
+            fcntl(redir_read_end, F_SETFL, flags);
+        }
+        int ret = read(redir_read_end, buff, sizeof(buff));
+        if (ret < 0 /*&& !stop_redir_thread*/) {
+            errmsg("Failed read input");
+            return -1;
+        }
 
         /* TODO: trim the output after writing too much */
         /* we know redirect out,err to a file and to the old out */
-        if (old_out >= 0) {
-            ASSERT_ECOFN(co_await co::write_sz(old_out, buff, ret));
+        if (redir_old_out >= 0) {
+            if (write_sz(redir_old_out, buff, ret) < 0) {
+                errmsg("Failed to write to old output");
+                return -1;
+            }
         }
-        ASSERT_ECOFN(co_await co::write_sz(file_fd, buff, ret));
+        if (write_sz(file_fd, buff, ret) < 0) {
+            errmsg("Failed to write to file");
+            return -1;
+        }
     }
-    co_return 0;
+    return 0;
+}
+
+void redir_stop() {
+    sleep_ms(100);
+    fflush(stdout);
+    fflush(stderr);
+    stop_redir_thread = true;
+    printf("DONE SIGNAL\n");
+    fflush(stderr);
+    fflush(stdout);
+    if (redir_th.joinable())
+        redir_th.join();
+    dprintf(redir_old_out, "[DONE REDIR]\n");
+}
+
+int init_redirect_out() {
+    int redirect[2] = { -1, -1 };
+
+    ASSERT_FN(pipe(redirect));
+    redir_read_end = redirect[0];
+    int write_end = redirect[1];
+
+    fflush(stderr);
+    fflush(stdout);
+
+    /* we are also redirecting the output to the old output */
+    ASSERT_FN(redir_old_out = dup(fileno(stdout)));
+    ASSERT_FN(redir_old_err = dup(fileno(stderr)));
+
+    if (dup2(write_end, fileno(stdout)) < 0) {
+        dprintf(redir_old_err, "Failed to dup stdout: %s\n", strerror(errno));
+        return -1;
+    }
+    if (dup2(write_end, fileno(stderr)) < 0)  {
+        dprintf(redir_old_err, "Failed to dup stderr: %s\n", strerror(errno));
+        return -1;
+    }
+
+    /* good boy chatgpt, it seems those change the buffering mode on a pipe, ffs */
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stderr, NULL, _IOLBF, 0);
+
+    fflush(stdout);
+    fflush(stderr);
+
+    close(write_end);
+    redir_th = std::thread(th_redirect_out);
+
+    return 0;
 }
 
 co::task_t co_waitexit(int sigfd) {
@@ -98,6 +186,7 @@ co::task_t co_waitexit(int sigfd) {
         ASSERT_ECOFN(CHK_BOOL(ret == sizeof(fdsi)));
 
         DBG("Quit");
+        dprintf(redir_old_out, "QUIT-PRINT\n");
         co_await co_shutdown();
         co_await co::force_stop(0);
     }
@@ -109,13 +198,14 @@ co::task_t co_main(std::function<std::string(int)> args) {
     sigset_t mask;
 
     sigemptyset(&mask);
-    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGHUP);
+    sigaddset(&mask, SIGQUIT);
+    sigaddset(&mask, SIGPWR);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGTERM);
     ASSERT_ECOFN(sigprocmask(SIG_BLOCK, &mask, NULL));
     ASSERT_ECOFN(sigfd = signalfd(-1, &mask, SFD_CLOEXEC));
 
-    co_await co::sched(co_redirect_out());
     co_await co::sched(co_waitexit(sigfd));
     co_await co::sched(co_cmds());
     co_await co::sched(co_tasks());
@@ -126,6 +216,10 @@ co::task_t co_main(std::function<std::string(int)> args) {
 int main(int argc, char const *argv[])
 {
     umask(0);
+    ASSERT_FN(init_redirect_out());
+    FnScope scope([]{ redir_stop(); });
+
+    DBG("This message, I should see it in logs");
 
     std::vector<std::string> args;
     for (int i = 0; i < argc; i++)
@@ -295,6 +389,5 @@ int main(int argc, char const *argv[])
 
         close(server_fd);
     }
-    /* code */
     return 0;
 }

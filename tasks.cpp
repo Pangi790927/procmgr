@@ -118,9 +118,9 @@ static pid_t exec_task(ptask_t task) {
             }
         }
         if (cutstdio) {
-            close(0);
-            close(1);
-            close(2);
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
         }
         if (usr != "") {
             if (setgid(gid) < 0) {
@@ -143,8 +143,11 @@ static pid_t exec_task(ptask_t task) {
         sigemptyset(&mask);
         sigaddset(&mask, SIGTERM);
         sigaddset(&mask, SIGINT);
-        sigaddset(&mask, SIGTERM);
         sigaddset(&mask, SIGCHLD);
+        sigaddset(&mask, SIGCHLD);
+        sigaddset(&mask, SIGHUP);
+        sigaddset(&mask, SIGQUIT);
+        sigaddset(&mask, SIGPWR);
         ASSERT_FN(sigprocmask(SIG_UNBLOCK, &mask, NULL));
 
         if (execvpe(progpath.c_str(), (char * const *)argv.data(), (char * const *)envp.data()) < 0) {

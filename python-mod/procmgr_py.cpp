@@ -341,8 +341,12 @@ static PyObject *read_msg(PyObject *self, PyObject *args) {
     return aw;
 }
 
-static PyObject *get_parent_dir(PyObject *self, PyObject *args) {
-    return PyUnicode_FromString(path_pid_dir(getppid()).c_str());
+// static PyObject *get_parent_dir(PyObject *self, PyObject *args) {
+//     return PyUnicode_FromString(path_pid_dir(getppid()).c_str());
+// }
+
+static PyObject *get_mod_dir(PyObject *self, PyObject *args) {
+    return PyUnicode_FromString(path_get_module_dir().c_str());
 }
 
 static PyObject *install_crash_handler(PyObject *self, PyObject *args) {
@@ -357,7 +361,7 @@ std::vector<PyMethodDef> module_methods = {
     PyMethodDef{"disconnect", disconnect, METH_VARARGS, "doc:disconnect"},
     PyMethodDef{"write_msg", write_msg, METH_VARARGS, "doc:write_msg"},
     PyMethodDef{"read_msg", read_msg, METH_VARARGS, "doc:read_msg"},
-    PyMethodDef{"get_parent_dir", get_parent_dir, METH_VARARGS, "doc:get_parent_dir"},
+    PyMethodDef{"get_mod_dir", get_mod_dir, METH_VARARGS, "doc:get_mod_dir"},
     PyMethodDef{"install_crash_handler", install_crash_handler, METH_VARARGS, "doc:install_crash_handler"},
 };
 
