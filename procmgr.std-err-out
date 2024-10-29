@@ -1,93 +1,59 @@
-[1730224618861][2117764] main.cpp:222 main() :> This message, I should see it in logs
-[1730224618862][2117764] tasks.cpp:207 run_task() :> Started: pmgrch[2117766]
-[1730224618862][2117764] tasks.cpp:207 run_task() :> Started: sched[2117767]
-[1730224618862][2117764] tasks.cpp:207 run_task() :> Started: chanmgr[2117768]
-[1730224618862][2117764] tasks.cpp:207 run_task() :> Started: taskmon[2117769]
-[1730224618863][2117764] tasks.cpp:207 run_task() :> Started: pyexamp[2117770]
-[1730224618863][2117764] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
-[1730224618863][2117764] cmds.cpp:263 co_cmds() :> usock_fd: 11
-[1730224618865][2117769] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224619867][2117769] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224619867][2117769] main.cpp:33 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224618865][2117768] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224619867][2117768] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224619867][2117768] main.cpp:429 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224619867][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: taskmon[2117769]
-[1730224619867][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: chanmgr[2117768]
-[1730224618865][2117767] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224619871][2117767] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224619871][2117767] main.cpp:9 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224619871][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: sched[2117767]
-[1730224618879][2117770] procmgr_py.cpp:369 pymod_pre_init() :>  --> 
-[1730224618879][2117770] procmgr_py.cpp:369 pymod_pre_init() :>  <-- 
-[1730224618895][2117770] procmgr_py.cpp:378 pymod_post_init() :>  --> 
-[1730224618895][2117770] procmgr_py.cpp:378 pymod_post_init() :>  <-- 
-[1730224618913][2117770] ../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224619914][2117770] ../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224619914][2117770] procmgr_py.cpp:353 install_crash_handler() :> [SYS] Failed function: pmgrch_init() [-1][err: No such file or directory [ENOENT], code: 2]
+[1730228199722][2131534] main.cpp:213 main() :> This message, I should see it in logs
+[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: pmgrch[2131537]
+[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: sched[2131538]
+[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131539]
+[1730228199724][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131540]
+[1730228199724][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131542]
+[1730228199724][2131534] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
+[1730228199724][2131534] cmds.cpp:263 co_cmds() :> usock_fd: 12
+[1730228200728][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131538]
+[1730228200728][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131539]
+[1730228200729][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131540]
+[1730228200839][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131542]
+[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: sched[2131554]
+[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131555]
+[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131556]
+[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131557]
+[1730228201727][2131554] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
+[1730228202729][2131554] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
+[1730228202729][2131554] main.cpp:9 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
+[1730228201728][2131555] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
+[1730228202729][2131555] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
+[1730228202729][2131555] main.cpp:429 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
+[1730228201728][2131556] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
+[1730228202729][2131556] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
+[1730228202729][2131556] main.cpp:33 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
+[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131554]
+[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131555]
+[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131556]
+[1730228201752][2131557] procmgr_py.cpp:369 pymod_pre_init() :>  --> 
+[1730228201752][2131557] procmgr_py.cpp:369 pymod_pre_init() :>  <-- 
+[1730228201768][2131557] procmgr_py.cpp:378 pymod_post_init() :>  --> 
+[1730228201768][2131557] procmgr_py.cpp:378 pymod_post_init() :>  <-- 
+[1730228201785][2131557] ../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
+[1730228202786][2131557] ../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
+[1730228202786][2131557] procmgr_py.cpp:353 install_crash_handler() :> [SYS] Failed function: pmgrch_init() [-1][err: No such file or directory [ENOENT], code: 2]
 Traceback (most recent call last):
   File "/home/apangratie/workspace/procmgr/./daemons/pyexamp/pyexamp.py", line 12, in <module>
     pmgr.install_crash_handler()
 SystemError: <built-in function install_crash_handler> returned NULL without setting an error
-[1730224619982][2117770] procmgr_py.cpp:403 pymod_uninit() :>  --> 
-[1730224619982][2117770] procmgr_py.cpp:205 co_await_register() :> AWAITER_TYPE_STOP_APP
-[1730224619982][2117770] procmgr_py.cpp:403 pymod_uninit() :>  <-- 
-[1730224619984][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: pyexamp[2117770]
-[1730224620864][2117764] tasks.cpp:207 run_task() :> Started: taskmon[2117786]
-[1730224620864][2117764] tasks.cpp:207 run_task() :> Started: chanmgr[2117787]
-[1730224620864][2117764] tasks.cpp:207 run_task() :> Started: sched[2117788]
-[1730224620865][2117764] tasks.cpp:207 run_task() :> Started: pyexamp[2117789]
-[1730224620866][2117786] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224621868][2117786] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224621869][2117786] main.cpp:33 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224620867][2117787] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224621869][2117787] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224621869][2117787] main.cpp:429 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224620867][2117788] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224621869][2117788] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224621869][2117788] main.cpp:9 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730224621869][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: taskmon[2117786]
-[1730224621869][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: chanmgr[2117787]
-[1730224621869][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: sched[2117788]
-[1730224620893][2117789] procmgr_py.cpp:369 pymod_pre_init() :>  --> 
-[1730224620893][2117789] procmgr_py.cpp:369 pymod_pre_init() :>  <-- 
-[1730224620909][2117789] procmgr_py.cpp:378 pymod_post_init() :>  --> 
-[1730224620909][2117789] procmgr_py.cpp:378 pymod_post_init() :>  <-- 
-[1730224620927][2117789] ../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730224621929][2117789] ../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730224621929][2117789] procmgr_py.cpp:353 install_crash_handler() :> [SYS] Failed function: pmgrch_init() [-1][err: No such file or directory [ENOENT], code: 2]
-Traceback (most recent call last):
-  File "/home/apangratie/workspace/procmgr/./daemons/pyexamp/pyexamp.py", line 12, in <module>
-    pmgr.install_crash_handler()
-SystemError: <built-in function install_crash_handler> returned NULL without setting an error
-[1730224621996][2117789] procmgr_py.cpp:403 pymod_uninit() :>  --> 
-[1730224621996][2117789] procmgr_py.cpp:205 co_await_register() :> AWAITER_TYPE_STOP_APP
-[1730224621996][2117789] procmgr_py.cpp:403 pymod_uninit() :>  <-- 
-[1730224621998][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: pyexamp[2117789]
-[1730224622865][2117764] tasks.cpp:207 run_task() :> Started: taskmon[2117797]
-[1730224622866][2117764] tasks.cpp:207 run_task() :> Started: chanmgr[2117798]
-[1730224622866][2117764] tasks.cpp:207 run_task() :> Started: sched[2117799]
-[1730224622866][2117764] tasks.cpp:207 run_task() :> Started: pyexamp[2117800]
-[1730224622981][2117764] main.cpp:188 co_waitexit() :> Quit
-[PMGRCH] sock_path: /home/apangratie/workspace/procmgr/daemons/pmgrch/../../python-mod//pmgrch.sock
-[1730224618879][2117766] procmgr_py.cpp:369 pymod_pre_init() :>  --> 
-[1730224618879][2117766] procmgr_py.cpp:369 pymod_pre_init() :>  <-- 
-[1730224618895][2117766] procmgr_py.cpp:378 pymod_post_init() :>  --> 
-[1730224618895][2117766] procmgr_py.cpp:378 pymod_post_init() :>  <-- 
-[1730224622982][2117764] tasks.cpp:394 co_handle_procs() :> 2117797 killed by signal 2
-[1730224622982][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: taskmon[2117797]
-[1730224622982][2117764] tasks.cpp:394 co_handle_procs() :> 2117799 killed by signal 2
-Traceback (most recent call last):
-  File "/home/apangratie/workspace/procmgr/./daemons/pmgrch/pmgrch.py", line 114, in <module>
-    conn, addr = server.accept()
-  File "/usr/lib/python3.8/socket.py", line 292, in accept
-    fd, addr = self._accept()
-KeyboardInterrupt
-[1730224622982][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: sched[2117799]
-[1730224622982][2117764] tasks.cpp:394 co_handle_procs() :> 2117798 killed by signal 2
-[1730224622982][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: chanmgr[2117798]
-[1730224622983][2117764] tasks.cpp:394 co_handle_procs() :> 2117800 killed by signal 15
-[1730224622984][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: pyexamp[2117800]
-[1730224622989][2117764] tasks.cpp:394 co_handle_procs() :> 2117766 killed by signal 15
-[1730224622989][2117764] tasks.cpp:410 co_handle_procs() :> Stopped: pmgrch[2117766]
+[1730228202851][2131557] procmgr_py.cpp:403 pymod_uninit() :>  --> 
+[1730228202851][2131557] procmgr_py.cpp:205 co_await_register() :> AWAITER_TYPE_STOP_APP
+[1730228202851][2131557] procmgr_py.cpp:403 pymod_uninit() :>  <-- 
+[1730228202853][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131557]
+[1730228203726][2131534] tasks.cpp:217 run_task() :> Started: sched[2131567]
+[1730228203726][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131568]
+[1730228203727][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131569]
+[1730228203727][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131570]
+[1730228204155][2131534] main.cpp:179 co_waitexit() :> Quit
+[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131567 killed by signal 2
+[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131567]
+[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131568 killed by signal 2
+[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131568]
+[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131569 killed by signal 2
+[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131569]
+[1730228204157][2131534] tasks.cpp:404 co_handle_procs() :> 2131570 killed by signal 15
+[1730228204157][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131570]
+[1730228204163][2131534] tasks.cpp:404 co_handle_procs() :> 2131537 killed by signal 15
+[1730228204163][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pmgrch[2131537]
 DONE SIGNAL

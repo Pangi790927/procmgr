@@ -51,6 +51,7 @@
 static int redir_old_out = -1;
 static int redir_old_err = -1;
 static int redir_read_end = -1;
+static int redir_write_end = 1;
 static std::atomic<bool> stop_redir_thread = false;
 static std::atomic<bool> force_stop_redir_thread = false;
 
@@ -97,15 +98,6 @@ int th_redirect_out() {
 
     char buff[1024];
     while (!stop_redir_thread) {
-        if (stop_redir_thread) {
-            /* we will read until we exit by error */
-            close(fileno(stdout));
-            close(fileno(stderr));
-
-            int flags = fcntl(redir_read_end, F_GETFL);
-            flags |= O_NONBLOCK;
-            fcntl(redir_read_end, F_SETFL, flags);
-        }
         int ret = read(redir_read_end, buff, sizeof(buff));
         if (ret < 0 /*&& !stop_redir_thread*/) {
             errmsg("Failed read input");
@@ -144,23 +136,23 @@ void redir_stop() {
 int init_redirect_out() {
     int redirect[2] = { -1, -1 };
 
-    ASSERT_FN(pipe(redirect));
+    ASSERT_FN(pipe2(redirect, O_CLOEXEC));
     redir_read_end = redirect[0];
-    int write_end = redirect[1];
+    int redir_write_end = redirect[1];
 
     fflush(stderr);
     fflush(stdout);
 
     /* we are also redirecting the output to the old output */
-    ASSERT_FN(redir_old_out = dup(fileno(stdout)));
-    ASSERT_FN(redir_old_err = dup(fileno(stderr)));
+    ASSERT_FN(redir_old_out = fcntl(fileno(stdout), F_DUPFD_CLOEXEC, 0));
+    ASSERT_FN(redir_old_err = fcntl(fileno(stderr), F_DUPFD_CLOEXEC, 0));
 
-    if (dup2(write_end, fileno(stdout)) < 0) {
-        dprintf(redir_old_err, "Failed to dup stdout: %s\n", strerror(errno));
+    if (dup2(redir_write_end, fileno(stdout)) < 0) {
+        dprintf(redir_old_out, "Failed to dup stdout: %s\n", strerror(errno));
         return -1;
     }
-    if (dup2(write_end, fileno(stderr)) < 0)  {
-        dprintf(redir_old_err, "Failed to dup stderr: %s\n", strerror(errno));
+    if (dup2(redir_write_end, fileno(stderr)) < 0)  {
+        dprintf(redir_old_out, "Failed to dup stderr: %s\n", strerror(errno));
         return -1;
     }
 
@@ -171,7 +163,6 @@ int init_redirect_out() {
     fflush(stdout);
     fflush(stderr);
 
-    close(write_end);
     redir_th = std::thread(th_redirect_out);
 
     return 0;
@@ -208,7 +199,7 @@ co::task_t co_main(std::function<std::string(int)> args) {
 
     co_await co::sched(co_waitexit(sigfd));
     co_await co::sched(co_cmds());
-    co_await co::sched(co_tasks());
+    co_await co::sched(co_tasks(redir_write_end));
 
     co_return 0;
 };

@@ -30,6 +30,7 @@ static std::set<ptask_t> tokill_tasks;
 static std::unordered_map<std::string, ptask_t> tasks;
 static std::unordered_map<pid_t, ptask_t> pid2task;
 static bool shutdown_flag = false;
+static int redir_write_end;
 
 extern char **environ;
 
@@ -119,8 +120,17 @@ static pid_t exec_task(ptask_t task) {
         }
         if (cutstdio) {
             close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
+
+            int null_fd = open("/dev/null", O_WRONLY);
+            if (null_fd >= 0) {
+                dup2(null_fd, STDOUT_FILENO);
+                dup2(null_fd, STDERR_FILENO);
+                close(null_fd); // Close after duplication
+            }
+        }
+        else {
+            dup2(redir_write_end, STDOUT_FILENO);
+            dup2(redir_write_end, STDERR_FILENO);
         }
         if (usr != "") {
             if (setgid(gid) < 0) {
@@ -476,7 +486,8 @@ co::task_t co_tasks_waitrm(const std::string& task_name) {
 }
 
 /* This coroutine handles tasks, their starting/stopping/etc. */
-co::task_t co_tasks() {
+co::task_t co_tasks(int _redir_write_end) {
+    redir_write_end = _redir_write_end;
     int sigfd;
     sigset_t mask;
 
