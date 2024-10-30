@@ -46,6 +46,10 @@
             - sends to users based on newline
             - have a cursor for each accepted process and a default at max buff end cursor for
             newcomers
+        This should be as such that multiple listeners can be added to the socket and not block.
+        This should also be available for taking to other daemons, making only their outputs available.
+        Usefull for watching their outputs.
+        If the cursor is forced to jump over data, then it also transmits an error
 */
 
 static int redir_old_out = -1;
