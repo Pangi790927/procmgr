@@ -16,8 +16,8 @@ str_pmgr_defs = pmgr.get_defs()
 pmgr_defs = DefaultMunch.fromDict(json.loads(str_pmgr_defs))
 
 # we are called by pmgr so that is our parent dir
-pmgr_dir = pmgr.get_parent_dir()
-print(pmgr_dir)
+pmgr_dir = f"{pmgr.get_mod_dir()}/../"
+pmgr.dbg(pmgr_dir)
 
 async def sendmsg(fd, msg):
     await pmgr.write_msg(fd, json.dumps(msg))
@@ -39,10 +39,10 @@ async def co_client():
 
     while True:
         msg = await recvmsg(fd)
-        print(f"CLIENT: Py Recv Event: {msg}")
+        pmgr.dbg(f"CLIENT: Py Recv Event: {msg}")
 
 async def co_server():
-    print("SERVER: Started server")
+    pmgr.dbg("SERVER: Started server")
     fd = await pmgr.connect(f"{pmgr_dir}/chanmgr.sock")
     conn_ev = {
         "hdr": { "type": pmgr_defs.pmgr_msg_type_e.PMGR_CHAN_REGISTER },
@@ -64,13 +64,13 @@ async def co_server():
         await asyncio.sleep(1)
 
 async def co_main():
-    print("Started main")
+    pmgr.dbg("Started main")
     t1 = asyncio.get_event_loop().create_task(co_server())
     t2 = asyncio.get_event_loop().create_task(co_client())
 
     await t1
     await t2
-    print("Done main")
+    pmgr.dbg("Done main")
 
 asyncio.run(co_main())
-print("--Python exit for reasons?")
+pmgr.dbg("--Python exit for reasons?")

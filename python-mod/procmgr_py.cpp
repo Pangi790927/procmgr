@@ -8,6 +8,7 @@
 #include "pmgrch.h"
 
 #include <thread>
+#include <frameobject.h>
 
 /* A python application that is a daemon can load this module to help it communicate with the rest
 of the procmgr modules. This module will accomplish the task of translating messages from json to
@@ -354,6 +355,25 @@ static PyObject *install_crash_handler(PyObject *self, PyObject *args) {
     return Py_BuildValue("s", "ok");
 }
 
+static PyObject *log_str(PyObject *self, PyObject *args) {
+    std::string caller_name = "unknown";
+    std::string fn_name = "unknown";
+    PyThreadState * ts = PyThreadState_Get();
+    PyFrameObject* frame = ts->frame;
+    if (frame) {
+        caller_name = path_get_name(_PyUnicode_AsString(frame->f_code->co_filename));
+        fn_name = _PyUnicode_AsString(frame->f_code->co_name);
+    }
+
+    const char *msg; 
+    if (!PyArg_ParseTuple(args, "s", &msg)) {
+        DBG("Failed parse args");
+        return NULL;
+    }
+    DBG("[PyPMGR][%s:%s] %s", caller_name.c_str(), fn_name.c_str(), msg);
+    return Py_BuildValue("s", "ok"); /* TODO: different */
+}
+
 std::vector<PyMethodDef> module_methods = {
     PyMethodDef{"example_awaitable", example_awaitable, METH_VARARGS, "doc:example awaitable"},
     PyMethodDef{"get_defs", get_defs, METH_VARARGS, "doc:get_defs"},
@@ -363,6 +383,7 @@ std::vector<PyMethodDef> module_methods = {
     PyMethodDef{"read_msg", read_msg, METH_VARARGS, "doc:read_msg"},
     PyMethodDef{"get_mod_dir", get_mod_dir, METH_VARARGS, "doc:get_mod_dir"},
     PyMethodDef{"install_crash_handler", install_crash_handler, METH_VARARGS, "doc:install_crash_handler"},
+    PyMethodDef{"dbg", log_str, METH_VARARGS, "doc: add to the same logs as the lib"},
 };
 
 int pymod_pre_init(std::vector<PyMethodDef> &methods, PyModuleDef *module_def) {

@@ -73,9 +73,9 @@ def write_crash_raport(target_pid, file_out):
 str_pmgr_defs = pmgr.get_defs()
 pmgr_defs = DefaultMunch.fromDict(json.loads(str_pmgr_defs))
 
-pmgr_dir = pmgr.get_mod_dir()
-sock_path = f"{pmgr_dir}/pmgrch.sock"
-print(f"[PMGRCH] sock_path: {sock_path}")
+pmgr_lib_dir = pmgr.get_mod_dir()
+sock_path = f"{pmgr_lib_dir}/../pmgrch.sock"
+pmgr.dbg(f"sock_path: {sock_path}")
 
 # create the socket inside the parent dir
 if os.path.exists(sock_path):
@@ -89,11 +89,11 @@ def handle_crash(client, real_pid):
     try:
         pid = int.from_bytes(client.recv(4), "little")
         if real_pid != pid:
-            print("sneaky...")
+            pmgr.dbg("sneaky...")
             return
         data = client.recv(1)
         if len(data) == 1:
-            print("Crash received, will start to analyze it")
+            pmgr.dbg("Crash received, will start to analyze it")
 
             exe_name = os.path.basename(os.path.realpath(f"/proc/{pid}/exe"))
             try:
@@ -104,16 +104,18 @@ def handle_crash(client, real_pid):
 
             with open(crash_file, "w") as f:
                 write_crash_raport(pid, f)
-            print("crash done...")
+            pmgr.dbg("crash done...")
             client.send(b'\x00')
     except Exception as e:
-        print(f"had exception: {e}...")
+        pmgr.dbg(f"had exception: {e}...")
     client.close()
 
+pmgr.dbg(f"waiting for connections...");
 while True:
     conn, addr = server.accept()
     real_pid = conn.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED)
+    pmgr.dbg(f"waiting for connections...");
     threading.Thread(target=handle_crash, args=(conn,real_pid)).start()
 
-print("PMGRCH Exit")
+pmgr.dbg("Exit")
 

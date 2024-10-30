@@ -11,7 +11,7 @@ pmgr_defs = DefaultMunch.fromDict(json.loads(str_pmgr_defs))
 print(f"defs: {str_pmgr_defs}")
 
 print("PMGR_CHAN_GET_IDENT", pmgr_defs.pmgr_msg_type_e.PMGR_CHAN_GET_IDENT)
-print(pmgr.get_parent_dir())
+print(pmgr.get_mod_dir())
 
 async def main():
     print("a")

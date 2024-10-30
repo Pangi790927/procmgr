@@ -1,59 +1,23 @@
-[1730228199722][2131534] main.cpp:213 main() :> This message, I should see it in logs
-[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: pmgrch[2131537]
-[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: sched[2131538]
-[1730228199723][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131539]
-[1730228199724][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131540]
-[1730228199724][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131542]
-[1730228199724][2131534] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
-[1730228199724][2131534] cmds.cpp:263 co_cmds() :> usock_fd: 12
-[1730228200728][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131538]
-[1730228200728][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131539]
-[1730228200729][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131540]
-[1730228200839][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131542]
-[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: sched[2131554]
-[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131555]
-[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131556]
-[1730228201725][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131557]
-[1730228201727][2131554] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730228202729][2131554] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730228202729][2131554] main.cpp:9 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730228201728][2131555] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730228202729][2131555] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730228202729][2131555] main.cpp:429 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730228201728][2131556] ../../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730228202729][2131556] ../../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730228202729][2131556] main.cpp:33 main() :> [SYS] FAILED: pmgrch_init()[err: No such file or directory [ENOENT], code: 2]
-[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131554]
-[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131555]
-[1730228202730][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131556]
-[1730228201752][2131557] procmgr_py.cpp:369 pymod_pre_init() :>  --> 
-[1730228201752][2131557] procmgr_py.cpp:369 pymod_pre_init() :>  <-- 
-[1730228201768][2131557] procmgr_py.cpp:378 pymod_post_init() :>  --> 
-[1730228201768][2131557] procmgr_py.cpp:378 pymod_post_init() :>  <-- 
-[1730228201785][2131557] ../pmgrch.h:43 pmgrch_init() :> sock_path: /home/apangratie/workspace/procmgr//pmgrch.sock
-[1730228202786][2131557] ../pmgrch.h:53 pmgrch_init() :> [SYS] FAILED: conn_res[err: No such file or directory [ENOENT], code: 2]
-[1730228202786][2131557] procmgr_py.cpp:353 install_crash_handler() :> [SYS] Failed function: pmgrch_init() [-1][err: No such file or directory [ENOENT], code: 2]
-Traceback (most recent call last):
-  File "/home/apangratie/workspace/procmgr/./daemons/pyexamp/pyexamp.py", line 12, in <module>
-    pmgr.install_crash_handler()
-SystemError: <built-in function install_crash_handler> returned NULL without setting an error
-[1730228202851][2131557] procmgr_py.cpp:403 pymod_uninit() :>  --> 
-[1730228202851][2131557] procmgr_py.cpp:205 co_await_register() :> AWAITER_TYPE_STOP_APP
-[1730228202851][2131557] procmgr_py.cpp:403 pymod_uninit() :>  <-- 
-[1730228202853][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131557]
-[1730228203726][2131534] tasks.cpp:217 run_task() :> Started: sched[2131567]
-[1730228203726][2131534] tasks.cpp:217 run_task() :> Started: chanmgr[2131568]
-[1730228203727][2131534] tasks.cpp:217 run_task() :> Started: taskmon[2131569]
-[1730228203727][2131534] tasks.cpp:217 run_task() :> Started: pyexamp[2131570]
-[1730228204155][2131534] main.cpp:179 co_waitexit() :> Quit
-[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131567 killed by signal 2
-[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: sched[2131567]
-[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131568 killed by signal 2
-[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[2131568]
-[1730228204155][2131534] tasks.cpp:404 co_handle_procs() :> 2131569 killed by signal 2
-[1730228204155][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[2131569]
-[1730228204157][2131534] tasks.cpp:404 co_handle_procs() :> 2131570 killed by signal 15
-[1730228204157][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pyexamp[2131570]
-[1730228204163][2131534] tasks.cpp:404 co_handle_procs() :> 2131537 killed by signal 15
-[1730228204163][2131534] tasks.cpp:420 co_handle_procs() :> Stopped: pmgrch[2131537]
-DONE SIGNAL
+[1730331454061][679308] main.cpp:217 main() :> This message, I should see it in logs
+[1730331454062][679308] tasks.cpp:217 run_task() :> Started: pmgrch[679310]
+[1730331454062][679308] tasks.cpp:217 run_task() :> Started: sched[679311]
+[1730331454062][679308] tasks.cpp:217 run_task() :> Started: chanmgr[679312]
+[1730331454062][679308] tasks.cpp:217 run_task() :> Started: taskmon[679313]
+[1730331454062][679308] tasks.cpp:217 run_task() :> Started: pyexamp[679314]
+[1730331454062][679308] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
+[1730331454062][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
+[1730331454364][679308] cmds.cpp:279 co_cmds() :> Connected: path: [/home/pangi/workspace/procmgr/daemons/chanmgr/chanmgr] pid: 679312
+[1730331458944][679308] main.cpp:183 co_waitexit() :> Quit
+[1730331458945][679308] ./utils/co_utils.h:1500 read_sz() :> Read failed, closed peer
+[1730331458945][679308] cmds.cpp:30 read_msg() :> [SYS] FAILED: CHK_BOOL(co_await co::read_sz(fd, msg.data(), sizeof(int)) == sizeof(int))[err: Success [(null)], code: 0]
+[1730331458945][679308] cmds.cpp:284 co_cmds() :> Failed to receive request
+[1730331458946][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
+[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679311 killed by signal 2
+[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: sched[679311]
+[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679312 killed by signal 2
+[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[679312]
+[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679313 killed by signal 2
+[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[679313]
+[1730331458946][679308] cmds.cpp:279 co_cmds() :> Connected: path: [] pid: 679313
+[1730331458946][679308] cmds.cpp:288 co_cmds() :> received message
+[1730331458946][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
