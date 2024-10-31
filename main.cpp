@@ -14,6 +14,8 @@
 #include "path_utils.h"
 
 /* TODO:
+    - enable chanmgr to send file descriptors around
+    - check if this program leaks fds, others than the known ones (0, 1, 2, 1023)
     - add a way to save runtime tasks, maybe in some sort of intermediary config?
         - maybe adding events would make this obsolete, as some sort of process could do this without
         breaking
@@ -153,6 +155,7 @@ int init_redirect_out() {
     the redirected output from all the programs. It's number is known as 1023 and can be used by
     exactly one program. The fd is not blocking on the write end because if no app is reading it's
     contents the pipe would block. Multiple apps reading from this fd is nonsense. */
+    /* TODO: chanmgr should take ownership of this file descriptor */
     ASSERT_FN(pipe2(extern_redir, O_NONBLOCK | O_CLOEXEC));
     redir_extern_input = extern_redir[1];
     ASSERT_FN(dup3(extern_redir[0], REDIR_FD_NUMBER, 0));
