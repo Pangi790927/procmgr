@@ -52,10 +52,14 @@
         If the cursor is forced to jump over data, then it also transmits an error
 */
 
+#define REDIR_FD_NUMBER 1023
+
 static int redir_old_out = -1;
 static int redir_old_err = -1;
 static int redir_read_end = -1;
 static int redir_write_end = 1;
+static int redir_extern_out = -1;
+static int redir_extern_input = -1;
 static std::atomic<bool> stop_redir_thread = false;
 static std::atomic<bool> force_stop_redir_thread = false;
 
@@ -120,6 +124,10 @@ int th_redirect_out() {
             errmsg("Failed to write to file");
             return -1;
         }
+
+        if (redir_extern_input >= 0) {
+            int ret = write(redir_extern_input, buff, ret);
+        }
     }
     return 0;
 }
@@ -139,8 +147,17 @@ void redir_stop() {
 
 int init_redirect_out() {
     int redirect[2] = { -1, -1 };
+    int extern_redir[2] = { -1, -1 }; 
 
-    ASSERT_FN(pipe2(redirect, O_CLOEXEC));
+    /* This is a pipe that can be 'taken' by any 'one' app and do whatever with it, it contains
+    the redirected output from all the programs. It's number is known as 1023 and can be used by
+    exactly one program. The fd is not blocking on the write end because if no app is reading it's
+    contents the pipe would block. Multiple apps reading from this fd is nonsense. */
+    ASSERT_FN(pipe2(extern_redir, O_NONBLOCK | O_CLOEXEC));
+    redir_extern_input = extern_redir[1];
+    ASSERT_FN(dup3(extern_redir[0], REDIR_FD_NUMBER, 0));
+
+    ASSERT_FN(pipe2(redirect, O_CLOEXEC)); /* this is the main out redirecter pipe */
     redir_read_end = redirect[0];
     int redir_write_end = redirect[1];
 
