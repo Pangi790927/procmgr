@@ -79,6 +79,7 @@ enum pmgr_msg_type_e : int32_t {
     PMGR_CHAN_ON_DISCON,/* asks the channel manager to be notified when a client disconnects */
     PMGR_CHAN_LIST,     /* asks for the list of connected clients up to this point */
     PMGR_CHAN_SELF,     /* asks about own id (pmgr_chann_msg_t, in dst) */
+    PMGR_CHAN_SENDFD,   /* send the file descriptor to another connected task (pmgr_chann_msg_t) */
 };
 
 enum pmgr_task_state_e : int32_t {
@@ -218,6 +219,55 @@ inline int pmgr_conn_socket(const char *sock_path) {
     ASSERT_FN(fd = socket(AF_UNIX, SOCK_STREAM, 0));
        
     ASSERT_FN(connect(fd, (struct sockaddr *) &sockaddr_un, sizeof(struct sockaddr_un)));
+    return fd;
+}
+
+/* After sending a message of type PMGR_CHAN_SENDFD, the sender needs to  send a message using
+pmgr_send_fd and after receiving a message of type PMGR_CHAN_SENDFD, the user needs to receive a fd
+using pmgr_recv_fd. */
+inline int pmgr_send_fd(int sock_fd, int target_fd) {
+    struct msghdr msg = { 0 };
+    char buf[CMSG_SPACE(sizeof(target_fd))];
+
+    memset(buf, '\0', sizeof(buf));
+    struct iovec io = { .iov_base = (void *)"", .iov_len = 1 };
+
+    msg.msg_iov = &io;
+    msg.msg_iovlen = 1;
+    msg.msg_control = buf;
+    msg.msg_controllen = sizeof(buf);
+
+    struct cmsghdr * cmsg = CMSG_FIRSTHDR(&msg);
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(target_fd));
+
+    memcpy(CMSG_DATA(cmsg), &target_fd, sizeof(target_fd));
+    msg.msg_controllen = CMSG_SPACE(sizeof(target_fd));
+
+    ASSERT_FN(sendmsg(sock_fd, &msg, 0));
+    return 0;
+}
+
+inline int pmgr_recv_fd(int sock_fd) {
+    struct msghdr msg = {0};
+
+    /* On Mac OS X, the struct iovec is needed, even if it points to minimal data */
+    char m_buffer[1];
+    struct iovec io = { .iov_base = m_buffer, .iov_len = sizeof(m_buffer) };
+    msg.msg_iov = &io;
+    msg.msg_iovlen = 1;
+
+    char c_buffer[256];
+    msg.msg_control = c_buffer;
+    msg.msg_controllen = sizeof(c_buffer);
+
+    ASSERT_FN(recvmsg(sock_fd, &msg, 0))
+    struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+
+    int fd;
+    memcpy(&fd, CMSG_DATA(cmsg), sizeof(fd));
+
     return fd;
 }
 

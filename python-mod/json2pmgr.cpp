@@ -6,7 +6,7 @@ int json2pmgr_values(std::string &values_json) {
     try {
         json jdefs = {
             /* increment this number each time you actualize this structure */
-            {"PMGR_BINDING_VERSION", 1},
+            {"PMGR_BINDING_VERSION", 2},
 
             /* defines related to object names */
             {"PMGR_MAX_TASK_NAME", PMGR_MAX_TASK_NAME},
@@ -44,6 +44,7 @@ int json2pmgr_values(std::string &values_json) {
                 {"PMGR_CHAN_ON_DISCON", PMGR_CHAN_ON_DISCON},
                 {"PMGR_CHAN_LIST", PMGR_CHAN_LIST},
                 {"PMGR_CHAN_SELF", PMGR_CHAN_SELF},
+                {"PMGR_CHAN_SENDFD", PMGR_CHAN_SENDFD},
             }},
 
             {"pmgr_task_state_e", {
@@ -106,7 +107,7 @@ int json2pmgr_values(std::string &values_json) {
         } \
         strcpy((dst), (src).get<std::string>().c_str());
 
-int json2pmgr(std::string &src, std::shared_ptr<pmgr_hdr_t> &dst) {
+int json2pmgr(std::string &src, std::shared_ptr<pmgr_hdr_t> &dst, int &target_fd) {
     using namespace nlohmann;
     try {
         json jsrc = json::parse(src, nullptr, true, true);
@@ -242,6 +243,8 @@ int json2pmgr(std::string &src, std::shared_ptr<pmgr_hdr_t> &dst) {
             }
             break;
 
+            case PMGR_CHAN_SENDFD:
+                target_fd = jsrc["fd"].get<int>();
             case PMGR_CHAN_GET_IDENT:
             case PMGR_CHAN_SELF:
             case PMGR_CHAN_LIST:
@@ -276,7 +279,7 @@ int json2pmgr(std::string &src, std::shared_ptr<pmgr_hdr_t> &dst) {
         return -1; \
     } \
 } 
-int json2pmgr(pmgr_hdr_t *src, std::string &dst) {
+int json2pmgr(pmgr_hdr_t *src, std::string &dst, int &target_fd) {
     using namespace nlohmann;
     switch (src->type) {
         case PMGR_MSG_START:
@@ -403,6 +406,20 @@ int json2pmgr(pmgr_hdr_t *src, std::string &dst) {
                 {"src_id", (int64_t)msg->src_id},
                 {"dst_id", (int64_t)msg->dst_id},
                 {"contents", has_null ? contents : ""},
+            };
+            dst = jdst.dump(4, ' ');
+        }
+        break;
+
+        case PMGR_CHAN_SENDFD: {
+            VALIDATE_SIZE(src, pmgr_chann_msg_t);
+            auto msg = (pmgr_chann_msg_t *)src;
+            json jdst = {
+                {"hdr", {{"type", (int32_t)src->type}, {"size", (int32_t)src->size}}},
+                {"flags", (int32_t)msg->flags},
+                {"src_id", (int64_t)msg->src_id},
+                {"dst_id", (int64_t)msg->dst_id},
+                {"fd", target_fd}
             };
             dst = jdst.dump(4, ' ');
         }

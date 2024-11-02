@@ -7,6 +7,7 @@ import procmgr_py as pmgr
 import asyncio
 import time
 import json
+import os
 from munch import DefaultMunch
 
 pmgr.install_crash_handler()
@@ -37,6 +38,12 @@ async def co_client():
     }
     await sendmsg(fd, conn_ev)
 
+    recvfd_msg = await recvmsg(fd)
+
+    pmgr.dbg(f"recvfd: {recvfd_msg}")
+    os.write(recvfd_msg["fd"], "This is a string".encode('utf-8'));
+    os.close(recvfd_msg["fd"])
+
     while True:
         msg = await recvmsg(fd)
         pmgr.dbg(f"CLIENT: Py Recv Event: {msg}")
@@ -51,6 +58,18 @@ async def co_server():
     }
     await sendmsg(fd, conn_ev)
 
+    sendfd_msg = {
+        "hdr": { "type": pmgr_defs.pmgr_msg_type_e.PMGR_CHAN_SENDFD },
+        "flags": pmgr_defs.pmgr_chan_flags_e.PMGR_CHAN_BCAST,
+        "src_id": 0,
+        "dst_id": 0,
+        "fd": int(os.open("./example.file", os.O_RDWR | os.O_CREAT, 0o666))
+    }
+
+    pmgr.dbg(f"sending fd... {sendfd_msg}")
+    await sendmsg(fd, sendfd_msg)
+    os.close(sendfd_msg["fd"])
+
     msg = {
         "hdr": { "type": pmgr_defs.pmgr_msg_type_e.PMGR_CHAN_MESSAGE },
         "flags": pmgr_defs.pmgr_chan_flags_e.PMGR_CHAN_BCAST,
@@ -59,6 +78,7 @@ async def co_server():
         "contents": "This is the string content of the message",
     }
 
+    pmgr.dbg("sending messages...")
     while True:
         await sendmsg(fd, msg)
         await asyncio.sleep(1)

@@ -149,10 +149,18 @@ co::task_t co_write(awaiter_t awaiter) {
     auto &state = chan_state[awaiter.chan_id];
 
     std::shared_ptr<pmgr_hdr_t> msg;
-    ASSERT_COFN(json2pmgr(awaiter.json_str, msg));
+    int target_fd = -1;
+    ASSERT_COFN(json2pmgr(awaiter.json_str, msg, target_fd));
     ASSERT_COFN(co_await co::write_sz(state->fd, msg.get(), msg->size));
- 
-    ASSERT_COFN(awake_awaiter(awaiter.aw, "K", 0));
+    if (target_fd != -1) {
+        ASSERT_COFN(co_await co::wait_event(state->fd, EPOLLOUT));
+        ASSERT_COFN(pmgr_send_fd(state->fd, target_fd));
+    }
+
+    int64_t ret = 0;
+    ASSERT_COFN(awake_awaiter(awaiter.aw, "K", ret));
+
+    /* incomming retmsg must be awaited with co_read */
 
     scope.disable();
     co_return 0;
@@ -180,9 +188,14 @@ co::task_t co_read(awaiter_t awaiter) {
         ASSERT_COFN(co_await co::read_sz(state->fd, msg_data.data() + sizeof(pmgr_hdr_t), rem));
         hdr = (pmgr_hdr_t *)msg_data.data();
     }
+    int target_fd = -1;
+    if (hdr->type == PMGR_CHAN_SENDFD) {
+        ASSERT_COFN(co_await co::wait_event(state->fd, EPOLLIN));
+        ASSERT_COFN(target_fd = pmgr_recv_fd(state->fd));
+    }
 
     std::string json_str;
-    ASSERT_COFN(json2pmgr(hdr, json_str));
+    ASSERT_COFN(json2pmgr(hdr, json_str, target_fd));
     ASSERT_COFN(awake_awaiter(awaiter.aw, "s", json_str.c_str()));
  
     scope.disable();

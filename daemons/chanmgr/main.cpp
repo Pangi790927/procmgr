@@ -70,6 +70,15 @@ co::task_t write_msg(client_p client, const void *data, size_t len) {
     co_return 0;
 }
 
+co::task_t send_fd(client_p client, int target_fd, pmgr_chann_msg_t *msg) {
+    co_await client->write_sem;
+    ASSERT_COFN(co_await co::write_sz(client->fd, msg, sizeof(*msg)));
+    ASSERT_COFN(co_await co::wait_event(client->fd, EPOLLOUT));
+    ASSERT_COFN(pmgr_send_fd(client->fd, target_fd));
+    client->write_sem.rel();
+    co_return 0;
+}
+
 co::task_t co_send_disconnects() {
     DBG_SCOPE();
     while (true) {
@@ -137,6 +146,11 @@ co::task_t co_client_messaging(client_p client) {
         /* we now have a valid message from our peer */
         retmsg.retval = 0;
 
+        /* we just got a message, till we respond to it, we aquire the messaging for it, such
+        that the response comes first */
+        co_await client->write_sem;
+        FnScope scope([client]{ client->write_sem.rel(); });
+
         switch (hdr->type) {
             case PMGR_CHAN_REGISTER: {
                 DBG("Can't register twice...");
@@ -197,6 +211,10 @@ co::task_t co_client_messaging(client_p client) {
                 }
                 else {
                     if (HAS(chan->id2client, msg->dst_id)) {
+                        if (msg->dst_id == client->id) {
+                            retmsg.retval = -1;
+                            break;
+                        }
                         auto dst_c = chan->id2client[msg->dst_id];
                         if (co_await write_msg(dst_c.lock(), msg, hdr->size) < 0) {
                             DBG("Failed to send message...");
@@ -224,6 +242,40 @@ co::task_t co_client_messaging(client_p client) {
                 }
                 ASSERT_COFN(co_await write_msg(client, &ident, sizeof(ident)));
             } break;
+            case PMGR_CHAN_SENDFD: {
+                VALIDATE_SIZE(hdr, pmgr_chann_msg_t);
+                auto msg = (pmgr_chann_msg_t *)hdr;
+
+                int target_fd = -1;
+
+                ASSERT_COFN(co_await co::wait_event(client->fd, EPOLLIN));
+                ASSERT_COFN(target_fd = pmgr_recv_fd(client->fd));
+                FnScope scope([target_fd]{ close(target_fd); });
+
+                if (msg->flags & PMGR_CHAN_BCAST) {
+                    for (auto [id, dst_c] : chan->id2client) {
+                        if (id != client->id) {
+                            if (co_await send_fd(dst_c.lock(), target_fd, msg) < 0) {
+                                DBG("Failed to send message...");
+                                retmsg.retval -= 1;
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (HAS(chan->id2client, msg->dst_id)) {
+                        if (msg->dst_id == client->id) {
+                            retmsg.retval = -1;
+                            break;
+                        }
+                        auto dst_c = chan->id2client[msg->dst_id];
+                        if (co_await send_fd(dst_c.lock(), target_fd, msg) < 0) {
+                            DBG("Failed to send message...");
+                            retmsg.retval -= 1;
+                        }
+                    }
+                }
+            } break;
             case PMGR_CHAN_ON_DISCON: {
                 VALIDATE_SIZE(hdr, pmgr_chann_msg_t);
                 auto msg = (pmgr_chann_msg_t *)hdr;
@@ -244,17 +296,19 @@ co::task_t co_client_messaging(client_p client) {
                         },
                         .dst_id = id,
                     };
-                    ASSERT_COFN(co_await write_msg(client, &msg, sizeof(msg)));
+                    ASSERT_COFN(co_await co::write_sz(client->fd, &msg, sizeof(msg)));
                 }
             } break;
             default: {
                 DBG("Unknown message");
                 co_return -1;
             }
+            
         }
 
         /* maybe change it a bit, for example write how many broadcasts succeded, etc. */
-        ASSERT_COFN(co_await write_msg(client, &retmsg, retmsg.hdr.size));
+        ASSERT_COFN(co_await co::write_sz(client->fd, &retmsg, retmsg.hdr.size));
+        /* here scope releases the lock */
     }
     co_return 0;
 }

@@ -1,23 +1,23 @@
-[1730331454061][679308] main.cpp:217 main() :> This message, I should see it in logs
-[1730331454062][679308] tasks.cpp:217 run_task() :> Started: pmgrch[679310]
-[1730331454062][679308] tasks.cpp:217 run_task() :> Started: sched[679311]
-[1730331454062][679308] tasks.cpp:217 run_task() :> Started: chanmgr[679312]
-[1730331454062][679308] tasks.cpp:217 run_task() :> Started: taskmon[679313]
-[1730331454062][679308] tasks.cpp:217 run_task() :> Started: pyexamp[679314]
-[1730331454062][679308] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
-[1730331454062][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
-[1730331454364][679308] cmds.cpp:279 co_cmds() :> Connected: path: [/home/pangi/workspace/procmgr/daemons/chanmgr/chanmgr] pid: 679312
-[1730331458944][679308] main.cpp:183 co_waitexit() :> Quit
-[1730331458945][679308] ./utils/co_utils.h:1500 read_sz() :> Read failed, closed peer
-[1730331458945][679308] cmds.cpp:30 read_msg() :> [SYS] FAILED: CHK_BOOL(co_await co::read_sz(fd, msg.data(), sizeof(int)) == sizeof(int))[err: Success [(null)], code: 0]
-[1730331458945][679308] cmds.cpp:284 co_cmds() :> Failed to receive request
-[1730331458946][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
-[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679311 killed by signal 2
-[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: sched[679311]
-[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679312 killed by signal 2
-[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[679312]
-[1730331458946][679308] tasks.cpp:404 co_handle_procs() :> 679313 killed by signal 2
-[1730331458946][679308] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[679313]
-[1730331458946][679308] cmds.cpp:279 co_cmds() :> Connected: path: [] pid: 679313
-[1730331458946][679308] cmds.cpp:288 co_cmds() :> received message
-[1730331458946][679308] cmds.cpp:263 co_cmds() :> usock_fd: 12
+[1730513353233][206559] main.cpp:237 main() :> This message, I should see it in logs
+[1730513353234][206559] tasks.cpp:217 run_task() :> Started: pmgrch[206561]
+[1730513353235][206559] tasks.cpp:217 run_task() :> Started: sched[206562]
+[1730513353235][206559] tasks.cpp:217 run_task() :> Started: chanmgr[206563]
+[1730513353235][206559] tasks.cpp:217 run_task() :> Started: taskmon[206564]
+[1730513353235][206559] tasks.cpp:217 run_task() :> Started: pyexamp[206565]
+[1730513353235][206559] cmds.cpp:260 co_cmds() :> Created socket, waiting clients
+[1730513353235][206559] cmds.cpp:263 co_cmds() :> usock_fd: 14
+[1730513353537][206559] cmds.cpp:279 co_cmds() :> Connected: path: [/home/pangi/workspace/procmgr/daemons/chanmgr/chanmgr] pid: 206563
+[1730513372313][206559] main.cpp:203 co_waitexit() :> Quit
+[1730513372314][206559] tasks.cpp:404 co_handle_procs() :> 206562 killed by signal 2
+[1730513372314][206559] tasks.cpp:420 co_handle_procs() :> Stopped: sched[206562]
+[1730513372314][206559] tasks.cpp:404 co_handle_procs() :> 206563 killed by signal 2
+[1730513372314][206559] tasks.cpp:420 co_handle_procs() :> Stopped: chanmgr[206563]
+[1730513372314][206559] tasks.cpp:404 co_handle_procs() :> 206564 killed by signal 2
+[1730513372314][206559] tasks.cpp:420 co_handle_procs() :> Stopped: taskmon[206564]
+[1730513372314][206559] ./utils/co_utils.h:1500 read_sz() :> Read failed, closed peer
+[1730513372314][206559] cmds.cpp:30 read_msg() :> [SYS] FAILED: CHK_BOOL(co_await co::read_sz(fd, msg.data(), sizeof(int)) == sizeof(int))[err: Success [(null)], code: 0]
+[1730513372314][206559] cmds.cpp:284 co_cmds() :> Failed to receive request
+[1730513372314][206559] cmds.cpp:263 co_cmds() :> usock_fd: 14
+[1730513372314][206559] cmds.cpp:279 co_cmds() :> Connected: path: [] pid: 206564
+[1730513372314][206559] cmds.cpp:288 co_cmds() :> received message
+[1730513372314][206559] cmds.cpp:263 co_cmds() :> usock_fd: 14
